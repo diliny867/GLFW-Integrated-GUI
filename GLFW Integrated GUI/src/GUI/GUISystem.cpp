@@ -1,10 +1,27 @@
 #include "GUISystem.h"
 
 
+GUISystem::GUISystem():state(ACTIVE) {}
 
+void GUISystem::Disable() {
+	state = DISABLED;
+}
+void GUISystem::Activate() {
+	state = ACTIVE;
+}
 
 void GUISystem::MarkDirty(){
 	dirty = true;
+}
+void GUISystem::Undirty() {
+	dirty = false;
+}
+
+glm::ivec2 GUISystem::GetScreenSize() const {
+	return screenSize;
+}
+GLFWwindow* GUISystem::GetWindow() const {
+	return window;
 }
 
 void GUISystem::Init(GLFWwindow* window_) {
@@ -20,7 +37,7 @@ void GUISystem::Init(GLFWwindow* window_) {
 	//RBO::generate(mainRenderbuffer);
 	//RBO::bind(mainRenderbuffer);
 	//RBO::setStorage(mainRenderbuffer,GL_DEPTH24_STENCIL8,screenSize.x,screenSize.y);
-	FBO::attachRBO(mainRenderbuffer,GL_DEPTH_STENCIL_ATTACHMENT);
+	//FBO::attachRBO(mainRenderbuffer,GL_DEPTH_STENCIL_ATTACHMENT);
 	if(!FBO::isComplete()) {
 		std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
 	}
@@ -48,8 +65,6 @@ void GUISystem::Init(GLFWwindow* window_) {
 	VAO::unbind();
 
 	projection = glm::ortho(0.0f,(float)screenSize.x,(float)screenSize.y,0.0f,-1000.0f,1000.0f);
-	//projection[1][1] *= -1.0f;
-	//projection[1][3] *= -1.0f;
 	//projection = glm::ortho(0.0f,(float)screenSize.x,0.0f,(float)screenSize.y,-100.0f,100.0f);
 	model = glm::mat4(1.0f);
 
@@ -63,94 +78,53 @@ void GUISystem::Init(GLFWwindow* window_) {
 	canvasShader->setInt("texture_diffuse1",0);
 
 	Texture2D* saulTexture = new Texture2D("resources/saul_3d.jpg",TextureType::Diffuse);
+	Texture2D* sillyTexture = new Texture2D("resources/silly.jpg",TextureType::Diffuse);
 
 	GUICanvas* gb = new GUICanvas(0,0,400,400,this);
+	auto ch_sc_f = EventListener::Check_SingleClick_Func;
 	gb->AddListener(new EventListener(gb,
-	[](EventListener* el)->bool {
-		GLFWwindow* window = el->guiElement->guiSystem->window;
-
-		static bool clickHolding = false; //to not trigger every tick on hold
-
-		double mouseX;
-		double mouseY;
-		if(glfwGetMouseButton(window,GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
-		    glfwGetCursorPos(window,&mouseX,&mouseY);
-		
-		    if(clickHolding == true) {
-		        return false;
-		    }
-		    clickHolding = true;
-		
-		    if(el->guiElement->CheckClick(mouseX,mouseY)){
-		        return true;
-		    }
-		} else {
-		    clickHolding = false;
-		}
-		return false;
-	},
+		ch_sc_f,
 	[](EventListener* el)->void {
-		el->guiElement->SetSnap(GUICanvas::RIGHT,GUICanvas::SideSnap::DRAG,GUICanvas::SideSnap::NO_SNAP);
-		el->guiElement->boundingBox.width = 200;
-		el->guiElement->SetSnap(GUICanvas::TOP,GUICanvas::SideSnap::DRAG,GUICanvas::SideSnap::NO_SNAP);
-		el->guiElement->boundingBox.height = 400;
+		el->guiElement->boundingBox.width -= 10;
+		el->guiElement->boundingBox.height += 5;
+		el->guiElement->MarkDirty();
 		el->guiElement->UpdateView();
 	},
 	[]() {
-		std::cout<<"CLICK !!!!1 !111 ! 1 1 1 1 1  1!!!\n";
+		std::cout<<"CLICK\n";
 	}
 	));
 	gb->texture = saulTexture;
-	//gb->SetSnap(GUICanvas::TOP,GUICanvas::SideSnap::WINDOW);
-	//gb->SetSnap(GUICanvas::RIGHT,GUICanvas::SideSnap::WINDOW);
 	gb->UpdateView();
 	guiElements.push_back(gb);
 
 	GUICanvas* gb2 = new GUICanvas(300,100,300,60,this);
+	auto ch_hur_f = EventListener::Check_HoldUntilRelease_Func;
 	gb2->AddListener(new EventListener(gb2,
-	[](EventListener* el)->bool {
-	    GLFWwindow* window = el->guiElement->guiSystem->window;
-
-	    static bool clickHolding = false; //to not trigger every tick on hold
-
-	    double mouseX;
-	    double mouseY;
-	    if(glfwGetMouseButton(window,GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
-	        glfwGetCursorPos(window,&mouseX,&mouseY);
-
-	        if(clickHolding == true) {
-	            return false;
-	        }
-	        clickHolding = true;
-
-	        if(el->guiElement->CheckClick(mouseX,mouseY)){
-	            return true;
-	        }
-	    } else {
-	        clickHolding = false;
-	    }
-	    return false;
-	},
-	[=](EventListener* el)->void {
-	    //gb2->SetSnap(GUICanvas::LEFT,GUICanvas::SideSnap::SCALE,GUICanvas::SideSnap::CANVAS,gb);
-	    //gb2->SetSnap(GUICanvas::BOTTOM,GUICanvas::SideSnap::SCALE,GUICanvas::SideSnap::WINDOW);
-	    gb2->SetSnap(GUICanvas::LEFT,GUICanvas::SideSnap::SCALE,GUICanvas::SideSnap::CANVAS,gb);
-	    gb2->SetSnap(GUICanvas::RIGHT,GUICanvas::SideSnap::SCALE,GUICanvas::SideSnap::WINDOW);
-	    gb2->UpdateView();
+		ch_hur_f,
+		[](EventListener* el)->void {
+		//el->guiElement->SetSnap(GUICanvas::BOTTOM,GUICanvas::SideSnap::SCALE,GUICanvas::SideSnap::WINDOW);
+		el->guiElement->boundingBox.x += InputManager::Mouse.deltaX;
+		el->guiElement->boundingBox.y -= InputManager::Mouse.deltaY;
+		el->guiElement->MarkDirty();
+		el->guiElement->UpdateView();
 	},
 	[]() {
-	    std::cout<<"CLICK !!!!1 !111 ! 1 1 1 1 1  1!!!\n";
-		}
+	    std::cout<<"HOLD\n";
+	}
 	));
-	gb2->texture = saulTexture;
+	gb2->texture = sillyTexture;
+	gb2->SetSnap(GUICanvas::LEFT,GUICanvas::SideSnap::SCALE,GUICanvas::SideSnap::CANVAS,gb);
+	gb2->SetSnap(GUICanvas::RIGHT,GUICanvas::SideSnap::SCALE,GUICanvas::SideSnap::WINDOW);
+	gb2->UpdateView();
 	guiElements.push_back(gb2);
 
 	MarkDirty();
 }
 
 void GUISystem::CheckActivateAllEventListeners() const {
-	for(auto& element: guiElements) {
-		for(auto& listener: element->listeners) {
+	for(const auto& element: guiElements) {
+		for(const auto& listener: element->listeners) {
 			if(listener->Check()) {
 				listener->OnActivate();
 			}
@@ -222,7 +196,9 @@ void GUISystem::RenderFromFramebuffer() const {
 }
 
 void GUISystem::NewFrame() {
-	//FillKeys();
+	if(state == DISABLED) {
+		return;
+	}
 
 	CheckActivateAllEventListeners();
 
@@ -247,5 +223,5 @@ void GUISystem::NewFrame() {
 	}
 
 	RenderFromFramebuffer();
-	dirty = false;
+	Undirty();
 }

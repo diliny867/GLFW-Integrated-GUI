@@ -72,6 +72,9 @@
     <ClCompile Include="src\GUI\GUISystem.cpp">
       <Filter>Source Files\GUI</Filter>
     </ClCompile>
+    <ClCompile Include="src\InputManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="resources\shaders\shader_fs.glsl">
@@ -138,6 +141,9 @@
     </ClInclude>
     <ClInclude Include="src\GUI\GUICommon.h">
       <Filter>Source Files\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\InputManager.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

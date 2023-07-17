@@ -11,8 +11,14 @@ public:
     bool Intersects(const BoundingBox& other) const {
         return !(x>other.x+other.width || x+width<other.x || y>other.y+other.height || y+height<other.y);
     }
-    bool ContainsPoint(const double pointX, const double pointY) const {
-        return pointX>=x && pointX<=x+width && pointY>=y && pointY<=y+height;
+    //bool ContainsPoint(const double pointX, const double pointY) const {
+    //    return pointX>=x && pointX<=x+width && pointY>=y && pointY<=y+height;
+    //}
+    bool ContainsPoint(const double pointX,const double pointY) const { //to not fail when width or height less than 0
+        const bool isPointInXRange = (width >= 0) ? (pointX >= x && pointX <= x + width) : (pointX <= x && pointX >= x + width);
+        const bool isPointInYRange = (height >= 0) ? (pointY >= y && pointY <= y + height) : (pointY <= y && pointY >= y + height);
+
+        return isPointInXRange && isPointInYRange;
     }
 
     double GetX2() const {

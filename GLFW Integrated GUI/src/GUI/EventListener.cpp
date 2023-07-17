@@ -1,7 +1,5 @@
 #include "EventListener.h"
 
-//#include <GLFW/glfw3.h>
-
 #include "GUICanvas.h"
 #include "GUISystem.h"
 
@@ -21,45 +19,50 @@ void EventListener::OnActivate() {
 	callback();
 }
 
+std::function<bool(EventListener*)> EventListener::Check_SingleClick_Func =
+[](EventListener* el)->bool {
 
-//AAAA why do if i use them these way, they dont work!?!??/1/1?!?1?1??!/11?!?!
-//inline std::function<bool(EventListener*)> EventListener::Check_SingleClick_Func =
-//[](EventListener* el)->bool {
-//	GLFWwindow* window = el->guiElement->guiSystem->window;
-//
-//	static bool clickHolding = false; //to not trigger every tick on hold
-//
-//	double mouseX;
-//	double mouseY;
-//	if(glfwGetMouseButton(window,GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
-//		glfwGetCursorPos(window,&mouseX,&mouseY);
-//
-//		if(clickHolding == true) {
-//			return false;
-//		}
-//		clickHolding = true;
-//
-//		if(el->guiElement->CheckClick(mouseX,mouseY)){
-//			return true;
-//		}
-//	} else {
-//		clickHolding = false;
-//	}
-//	return false;
-//};
-//inline std::function<bool(EventListener*)> EventListener::Check_Hold_Func =
-//[](EventListener* el)->bool {
-//	 GLFWwindow* window = el->guiElement->guiSystem->window;
-//
-//	 double mouseX;
-//	 double mouseY;
-//	 if(glfwGetMouseButton(window,GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
-//		 glfwGetCursorPos(window,&mouseX,&mouseY);
-//
-//		 if(el->guiElement->CheckClick(mouseX,mouseY)){
-//			 return true;
-//		 }
-//	 }
-//	 return false;
-// };
+	static bool clickHolding = false; //to not trigger every tick on hold
+
+	if(InputManager::Mouse.leftPress) {
+
+		if(clickHolding == true) {
+			return false;
+		}
+		clickHolding = true;
+
+		if(el->guiElement->CheckClick(InputManager::Mouse.posX,InputManager::Mouse.posY)){
+			return true;
+		}
+	} else {
+		clickHolding = false;
+	}
+	return false;
+};
+std::function<bool(EventListener*)> EventListener::Check_Hold_Func =
+[](EventListener* el)->bool {
+
+	if(InputManager::Mouse.leftPress) {
+
+		if(el->guiElement->CheckClick(InputManager::Mouse.posX,InputManager::Mouse.posY)){
+			return true;
+		}
+	}
+	return false;
+};
+std::function<bool(EventListener*)> EventListener::Check_HoldUntilRelease_Func =
+[](EventListener* el)->bool {
+
+	static bool captured = false;
+
+	if(InputManager::Mouse.leftPress) {
+		if(captured || el->guiElement->CheckClick(InputManager::Mouse.posX,InputManager::Mouse.posY)){
+			captured = true;
+			return true;
+		}
+	}else {
+		captured = false;
+	}
+	return false;
+};
 

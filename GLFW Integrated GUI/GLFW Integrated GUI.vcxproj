@@ -32,6 +32,7 @@
     <ClCompile Include="src\GUI\EventListener.cpp" />
     <ClCompile Include="src\GUI\GUICanvas.cpp" />
     <ClCompile Include="src\GUI\GUISystem.cpp" />
+    <ClCompile Include="src\InputManager.cpp" />
     <ClCompile Include="src\Source.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -58,6 +59,7 @@
     <ClInclude Include="src\GUI\GUICanvas.h" />
     <ClInclude Include="src\GUI\GUICommon.h" />
     <ClInclude Include="src\GUI\GUISystem.h" />
+    <ClInclude Include="src\InputManager.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
@@ -172,6 +174,7 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>C:\Users\Brivzemnieka\Desktop\Новая папка\Cpp\OpenGL Projects\includes;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

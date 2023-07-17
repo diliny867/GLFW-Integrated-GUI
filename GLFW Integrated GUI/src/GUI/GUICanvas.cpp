@@ -21,55 +21,28 @@ bool GUICanvas::CheckClick(const double x,const double y) const {
 }
 
 void GUICanvas::SetSnap(const Side side,const SideSnap::SnapType sideSnapType,const SideSnap::SnapState sideSnapState) {
-	const SideSnap snap = SideSnap(sideSnapState,sideSnapType);
-	switch (side) {
-	case LEFT:
-		sideSnaps[0] = snap;
-		break;
-	case RIGHT:
-		sideSnaps[1] = snap;
-		break;
-	case TOP:
-		sideSnaps[2] = snap;
-		break;
-	case BOTTOM:
-		sideSnaps[3] = snap;
-		break;
-	default:
-		break;
+	const SideSnap newSnap = SideSnap(sideSnapState,sideSnapType);
+	const int snapIndex = sideToIndex(side);
+	if(sideSnaps[snapIndex] == newSnap) {
+		return;
 	}
+	sideSnaps[snapIndex] = newSnap;
 	MarkDirty();
 }
 void GUICanvas::SetSnap(const Side side,const SideSnap::SnapType sideSnapType,const SideSnap::SnapState sideSnapState,GUICanvas* sideSnap) {
-	const SideSnap snap = SideSnap(sideSnapState,sideSnapType,sideSnap);
-	switch (side) {
-	case LEFT:
-		sideSnaps[0] = snap;
-		sideSnap->snappedToCurrent[1] = this;
-		break;
-	case RIGHT:
-		sideSnaps[1] = snap;
-		sideSnap->snappedToCurrent[0] = this;
-		break;
-	case TOP:
-		sideSnaps[2] = snap;
-		sideSnap->snappedToCurrent[3] = this;
-		break;
-	case BOTTOM:
-		sideSnaps[3] = snap;
-		sideSnap->snappedToCurrent[2] = this;
-		break;
-	default:
-		break;
+	const SideSnap newSnap = SideSnap(sideSnapState,sideSnapType,sideSnap);
+	const int snapIndex = sideToIndex(side);
+	if(sideSnaps[snapIndex] == newSnap) {
+		return;
 	}
+	sideSnaps[snapIndex] = newSnap;
+	sideSnap->snappedToThis.push_back(this);
 	MarkDirty();
 }
-void GUICanvas::notifyAllSnappedToCurrent() {
-	for(int i=0;i<4;i++) {
-		if (snappedToCurrent[i]!=nullptr) {
-			snappedToCurrent[i]->MarkDirty();
-			snappedToCurrent[i]->UpdateView();
-		}
+void GUICanvas::notifyAllSnappedToThis() {
+	for(const auto& snap: snappedToThis) {
+		snap->MarkDirty();
+		snap->UpdateView();
 	}
 }
 
@@ -118,6 +91,7 @@ void GUICanvas::updateSizesRecursive(const Side side) { //sorry for 3 identical 
 		return;
 	}
 	if(sideSnap.state == SideSnap::WINDOW) {
+		const glm::ivec2 screenSize = guiSystem->GetScreenSize();
 		switch(side) {
 		case Side::LEFT:
 			if(sideSnap.type == SideSnap::SCALE) {
@@ -127,9 +101,9 @@ void GUICanvas::updateSizesRecursive(const Side side) { //sorry for 3 identical 
 			break;
 		case Side::RIGHT:
 			if(sideSnap.type == SideSnap::DRAG) {
-				boundingBox.x = guiSystem->screenSize.x-boundingBox.width;
+				boundingBox.x = screenSize.x-boundingBox.width;
 			}else {
-				boundingBox.width = guiSystem->screenSize.x-boundingBox.x;
+				boundingBox.width = screenSize.x-boundingBox.x;
 			}
 			break;
 		case Side::TOP:
@@ -140,9 +114,9 @@ void GUICanvas::updateSizesRecursive(const Side side) { //sorry for 3 identical 
 			break;
 		case Side::BOTTOM:
 			if(sideSnap.type == SideSnap::DRAG) {
-				boundingBox.y = guiSystem->screenSize.y-boundingBox.height;
+				boundingBox.y = screenSize.y-boundingBox.height;
 			}else {
-				boundingBox.height = guiSystem->screenSize.y-boundingBox.y;
+				boundingBox.height = screenSize.y-boundingBox.y;
 			}
 			break;
 		default:
@@ -203,7 +177,7 @@ void GUICanvas::updateWhenDirty() {
 void GUICanvas::UpdateView() {
 	if(dirty) {
 		updateWhenDirty();
-		notifyAllSnappedToCurrent();
+		notifyAllSnappedToThis();
 		Undirty();
 	}
 }

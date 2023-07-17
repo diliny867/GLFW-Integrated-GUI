@@ -7,6 +7,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "../../include/GL/Texture2D.h"
+#include "../../include/GL/Shader.h"
 
 #include "BoundingBox.h"
 #include "GUICommon.h"
@@ -34,6 +35,7 @@ public:
 		SideSnap(const SnapState state_):state(state_),type(DRAG),canvas(nullptr) {}
 		SideSnap(const SnapState state_,const SnapType type_):state(state_),type(type_),canvas(nullptr){}
 		SideSnap(const SnapState state_,const SnapType type_,GUICanvas* parent_):state(state_),type(type_),canvas(parent_){}
+		friend bool operator==(const SideSnap& lhs,const SideSnap& rhs){ return lhs.state==rhs.state && lhs.type==rhs.type && lhs.canvas==rhs.canvas; }
 	};
 	enum Side {
 		UNKNOWN = 0,
@@ -51,17 +53,17 @@ protected:
 	void updateSizesRecursive(const Side side);
 	void updateSizesRecursive();
 	void updateModelMatrix();
-	void notifyAllSnappedToCurrent();
+	void notifyAllSnappedToThis();
 public:
 	BoundingBox boundingBox;
 
 	SideSnap sideSnaps[4];
-	GUICanvas* snappedToCurrent[4];
+	std::vector<GUICanvas*> snappedToThis;
 
 	GUISystem* guiSystem;
 
-	glm::mat4 model = glm::mat4(1.0f);
 	Texture2D* texture = nullptr;
+	glm::mat4 model = glm::mat4(1.0f);
 
 	GUICanvas();
 	GUICanvas(const double x,const double y,const double width,const double height, GUISystem* guiSystem_);
@@ -73,6 +75,6 @@ public:
 	void SetSnap(const Side side, const SideSnap::SnapType sideSnapType, const SideSnap::SnapState sideSnapState, GUICanvas* sideSnap);
 	void MarkDirty();
 	bool IsDirty() const;
-	void UpdateView();
+	void UpdateView(); //I think i should put this in SetSnap
 	void Undirty();
 };

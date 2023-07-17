@@ -2,8 +2,11 @@
 
 //Inspired by DearImGUI
 
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+
+#include <glm/glm.hpp>
 
 #include "../../include/GL/Texture2D.h"
 #include "../../include/GL/Shader.h"
@@ -20,16 +23,20 @@
 #include "GUICanvas.h"
 #include "EventListener.h"
 #include "BoundingBox.h"
+#include "../InputManager.h"
 
 
 class GUISystem {
-protected:
-	glm::mat4 projection = glm::mat4(1.0f);
-	glm::mat4 model = glm::mat4(1.0f);
-	bool dirty = false;
 public:
+	enum GlobalState {
+		DISABLED,
+		ACTIVE
+	};
+protected:
+	GlobalState state;
 	GLFWwindow* window;
-	std::vector<GUICanvas*> guiElements;
+
+	glm::ivec2 screenSize ={0,0};
 
 	GLuint quadEBO;
 	GLuint screenQuadVBO;
@@ -41,6 +48,8 @@ public:
 
 	GLuint canvasVBO;
 	GLuint canvasVAO;
+	Shader* canvasShader;
+
 	//struct CanvasVertex {
 	//	glm::vec2 position;
 	//	glm::vec2 texCoord;
@@ -49,18 +58,27 @@ public:
 	//	CanvasVertex(const float x1, const float y1, const float x2, const float y2):position(x1,y1),texCoord(x2,y2){}
 	//	//glm::mat4 model;
 	//};
-	Shader* canvasShader;
 
-	glm::ivec2 screenSize = {0,0};
+	glm::mat4 projection = glm::mat4(1.0f);
+	glm::mat4 model = glm::mat4(1.0f);
 
-	//bool keyMap[GLFW_KEY_LAST];
-	//void FillKeys() {
-	//	for(int key=0;key<GLFW_KEY_LAST;key++) {
-	//		keyMap[key] = glfwGetKey(window,key) == GLFW_PRESS;
-	//	}
-	//}
+	bool dirty = false;
+
+	std::vector<GUICanvas*> guiElements;
+
+
+public:
+
+	GUISystem();
+
+	void Disable();
+	void Activate();
 
 	void MarkDirty();
+	void Undirty();
+
+	glm::ivec2 GetScreenSize() const;
+	GLFWwindow* GetWindow() const;
 
 	void Init(GLFWwindow* window_);
 
@@ -70,7 +88,7 @@ public:
 
 	void RemapCanvasVertexBuffer();
 
-	mutable std::size_t rerendersCount = 0; //to be able to change in RerenderToFramebuffer
+	mutable std::size_t rerendersCount = 0; //mutable to be able to change in RerenderToFramebuffer
 	void RerenderToFramebuffer() const;
 
 	void RenderFromFramebuffer() const;

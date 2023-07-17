@@ -21,9 +21,12 @@ public:
 	EventListener(GUICanvas* element_,const std::function<bool(EventListener*)>& check,const std::function<void(EventListener*)>& onActivate);
 	EventListener(GUICanvas* element_,const std::function<bool(EventListener*)>& check,const std::function<void(EventListener*)>& onActivate,const std::function<void()>& callback_);
 	//virtual ~EventListener(){}
-	static std::function<bool(EventListener*)> Check_SingleClick_Func;
-	static std::function<bool(EventListener*)> Check_Hold_Func;
 	bool Check();
 	void OnActivate();
+	//!!! Please copy before use !!!
+	//auto foo = EventListener::Check_SingleClick_Func;
+	static std::function<bool(EventListener*)> Check_SingleClick_Func;
+	static std::function<bool(EventListener*)> Check_Hold_Func;
+	static std::function<bool(EventListener*)> Check_HoldUntilRelease_Func;
 };
 

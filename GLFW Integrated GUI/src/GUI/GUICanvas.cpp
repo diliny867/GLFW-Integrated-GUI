@@ -20,19 +20,19 @@ bool GUICanvas::CheckClick(const double x,const double y) const {
 	return boundingBox.ContainsPoint(x,y);
 }
 
-void GUICanvas::SetSnap(const Side side,const SideSnap::SnapState sideSnapState) {
-	const SideSnap snap = SideSnap(sideSnapState);
-	switch(side) {
-	case Side::LEFT:
+void GUICanvas::SetSnap(const Side side,const SideSnap::SnapType sideSnapType,const SideSnap::SnapState sideSnapState) {
+	const SideSnap snap = SideSnap(sideSnapState,sideSnapType);
+	switch (side) {
+	case LEFT:
 		sideSnaps[0] = snap;
 		break;
-	case Side::RIGHT:
+	case RIGHT:
 		sideSnaps[1] = snap;
 		break;
-	case Side::TOP:
+	case TOP:
 		sideSnaps[2] = snap;
 		break;
-	case Side::BOTTOM:
+	case BOTTOM:
 		sideSnaps[3] = snap;
 		break;
 	default:
@@ -40,25 +40,37 @@ void GUICanvas::SetSnap(const Side side,const SideSnap::SnapState sideSnapState)
 	}
 	MarkDirty();
 }
-void GUICanvas::SetSnap(const Side side,const SideSnap::SnapState sideSnapState, GUICanvas* sideSnap) {
-	const SideSnap snap = SideSnap(sideSnapState,sideSnap);
-	switch(side) {
-	case Side::LEFT:
+void GUICanvas::SetSnap(const Side side,const SideSnap::SnapType sideSnapType,const SideSnap::SnapState sideSnapState,GUICanvas* sideSnap) {
+	const SideSnap snap = SideSnap(sideSnapState,sideSnapType,sideSnap);
+	switch (side) {
+	case LEFT:
 		sideSnaps[0] = snap;
+		sideSnap->snappedToCurrent[1] = this;
 		break;
-	case Side::RIGHT:
+	case RIGHT:
 		sideSnaps[1] = snap;
+		sideSnap->snappedToCurrent[0] = this;
 		break;
-	case Side::TOP:
+	case TOP:
 		sideSnaps[2] = snap;
+		sideSnap->snappedToCurrent[3] = this;
 		break;
-	case Side::BOTTOM:
+	case BOTTOM:
 		sideSnaps[3] = snap;
+		sideSnap->snappedToCurrent[2] = this;
 		break;
 	default:
 		break;
 	}
 	MarkDirty();
+}
+void GUICanvas::notifyAllSnappedToCurrent() {
+	for(int i=0;i<4;i++) {
+		if (snappedToCurrent[i]!=nullptr) {
+			snappedToCurrent[i]->MarkDirty();
+			snappedToCurrent[i]->UpdateView();
+		}
+	}
 }
 
 GUICanvas::Side GUICanvas::indexToSide(const int index) {
@@ -101,38 +113,37 @@ bool GUICanvas::IsDirty() const {
 void GUICanvas::updateSizesRecursive(const Side side) { //sorry for 3 identical switches
 	//TODO: add check if snaps are identical or cyclic
 	SideSnap sideSnap;
-	switch(side) {
-	case Side::LEFT:
-		sideSnap = sideSnaps[0];
-		break;
-	case Side::RIGHT:
-		sideSnap = sideSnaps[1];
-		break;
-	case Side::TOP:
-		sideSnap = sideSnaps[2];
-		break;
-	case Side::BOTTOM:
-		sideSnap = sideSnaps[3];
-		break;
-	default:
-		break;
-	}
+	sideSnap = sideSnaps[sideToIndex(side)];
 	if(sideSnap.state == SideSnap::NO_SNAP) {
 		return;
 	}
 	if(sideSnap.state == SideSnap::WINDOW) {
 		switch(side) {
 		case Side::LEFT:
+			if(sideSnap.type == SideSnap::SCALE) {
+				boundingBox.width = -boundingBox.x+boundingBox.width;
+			}
 			boundingBox.x = 0;
 			break;
 		case Side::RIGHT:
-			boundingBox.width = guiSystem->screenSize.x-boundingBox.x;
+			if(sideSnap.type == SideSnap::DRAG) {
+				boundingBox.x = guiSystem->screenSize.x-boundingBox.width;
+			}else {
+				boundingBox.width = guiSystem->screenSize.x-boundingBox.x;
+			}
 			break;
 		case Side::TOP:
+			if(sideSnap.type == SideSnap::SCALE) {
+				boundingBox.height = -boundingBox.y+boundingBox.height;
+			}
 			boundingBox.y = 0;
 			break;
 		case Side::BOTTOM:
-			boundingBox.height = guiSystem->screenSize.y-boundingBox.y;
+			if(sideSnap.type == SideSnap::DRAG) {
+				boundingBox.y = guiSystem->screenSize.y-boundingBox.height;
+			}else {
+				boundingBox.height = guiSystem->screenSize.y-boundingBox.y;
+			}
 			break;
 		default:
 			break;
@@ -140,18 +151,34 @@ void GUICanvas::updateSizesRecursive(const Side side) { //sorry for 3 identical 
 	} 
 	if(sideSnap.state == SideSnap::CANVAS){
 		sideSnap.canvas->updateSizesRecursive(side);
+		const double oldX = boundingBox.x;
+		const double oldY = boundingBox.y;
 		switch(side) {
 		case Side::LEFT:
 			boundingBox.x = sideSnap.canvas->boundingBox.GetX2();
+			if(sideSnap.type == SideSnap::SCALE) {
+				boundingBox.width = boundingBox.width+oldX-boundingBox.x;
+			}
 			break;
 		case Side::RIGHT:
-			boundingBox.width = sideSnap.canvas->boundingBox.x-boundingBox.x;
+			if(sideSnap.type == SideSnap::DRAG) {
+				boundingBox.x = oldX+sideSnap.canvas->boundingBox.x-boundingBox.GetX2();
+			}else {
+				boundingBox.width = sideSnap.canvas->boundingBox.x-boundingBox.x;
+			}
 			break;
 		case Side::TOP:
 			boundingBox.y = sideSnap.canvas->boundingBox.GetY2();
+			if(sideSnap.type == SideSnap::SCALE) {
+				boundingBox.height = boundingBox.height+oldY-boundingBox.y;
+			}
 			break;
 		case Side::BOTTOM:
-			boundingBox.height = sideSnap.canvas->boundingBox.y-boundingBox.y;
+			if(sideSnap.type == SideSnap::DRAG) {
+				boundingBox.y = oldY+sideSnap.canvas->boundingBox.y-boundingBox.GetY2();
+			} else{
+				boundingBox.height = sideSnap.canvas->boundingBox.y-boundingBox.y;
+			}
 			break;
 		default:
 			break;
@@ -176,22 +203,9 @@ void GUICanvas::updateWhenDirty() {
 void GUICanvas::UpdateView() {
 	if(dirty) {
 		updateWhenDirty();
+		notifyAllSnappedToCurrent();
 		Undirty();
 	}
-
-	//if(dirty) {
-	//	UpdateWhenDirty();
-	//	Undirty();
-	//	return;
-	//}
-	//for(int i=0;i<4;i++) {
-	//	if(sideSnaps[i].sideSnapState!=SideSnap::NO_SNAP) {
-	//		MarkDirty();
-	//		UpdateWhenDirty();
-	//		break;
-	//	}
-	//}
-	//Undirty();
 }
 void GUICanvas::Undirty() {
 	dirty = false;

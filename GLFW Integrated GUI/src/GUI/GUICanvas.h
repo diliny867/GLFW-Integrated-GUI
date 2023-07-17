@@ -22,12 +22,18 @@ public:
 			WINDOW,
 			CANVAS
 		};
+		enum SnapType {
+			DRAG,
+			SCALE
+		};
 		SnapState state;
+		SnapType type;
 		GUICanvas* canvas;
 		//GUICanvas* source; //TODO: Add this to update elements snapped to this object (like add something like NotifySnaps() function)
-		SideSnap():state(NO_SNAP),canvas(nullptr){}
-		SideSnap(const SnapState state_):state(state_),canvas(nullptr){}
-		SideSnap(const SnapState state_, GUICanvas* parent_):state(state_),canvas(parent_){}
+		SideSnap():state(NO_SNAP),type(DRAG),canvas(nullptr) {}
+		SideSnap(const SnapState state_):state(state_),type(DRAG),canvas(nullptr) {}
+		SideSnap(const SnapState state_,const SnapType type_):state(state_),type(type_),canvas(nullptr){}
+		SideSnap(const SnapState state_,const SnapType type_,GUICanvas* parent_):state(state_),type(type_),canvas(parent_){}
 	};
 	enum Side {
 		UNKNOWN = 0,
@@ -36,11 +42,7 @@ public:
 		TOP,
 		BOTTOM
 	};
-	enum PositionState { //css :crying: emoji, :skull: emoji
-		Abosolute,
-		Fixed,
-		Relative
-	};
+	
 protected:
 	bool dirty = false;
 	static Side indexToSide(const int index);
@@ -49,11 +51,12 @@ protected:
 	void updateSizesRecursive(const Side side);
 	void updateSizesRecursive();
 	void updateModelMatrix();
+	void notifyAllSnappedToCurrent();
 public:
 	BoundingBox boundingBox;
 
-	PositionState posState;
-	SideSnap sideSnaps[4] ;
+	SideSnap sideSnaps[4];
+	GUICanvas* snappedToCurrent[4];
 
 	GUISystem* guiSystem;
 
@@ -66,8 +69,8 @@ public:
 	std::vector<EventListener*> listeners;
 	void AddListener(EventListener* listener);
 	bool CheckClick(const double x, const double y) const;
-	void SetSnap(const Side side, const SideSnap::SnapState sideSnapState);
-	void SetSnap(const Side side, const SideSnap::SnapState sideSnapState, GUICanvas* sideSnap);
+	void SetSnap(const Side side, const SideSnap::SnapType sideSnapType, const SideSnap::SnapState sideSnapState);
+	void SetSnap(const Side side, const SideSnap::SnapType sideSnapType, const SideSnap::SnapState sideSnapState, GUICanvas* sideSnap);
 	void MarkDirty();
 	bool IsDirty() const;
 	void UpdateView();

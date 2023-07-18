@@ -12,20 +12,24 @@
 #include "BoundingBox.h"
 #include "GUICommon.h"
 
+#include <deque>
+
 class EventListener;
 class GUISystem;
 
 class GUICanvas {
 public:
-	struct SideSnap {
+	struct SideSnap { //Needs refactoring
 		enum SnapState {
 			NO_SNAP = 0,
 			WINDOW,
 			CANVAS
 		};
 		enum SnapType {
-			DRAG,
-			SCALE
+			DRAG, //moves to opposite side of snap
+			DRAG_STRAIGHT, //moves to the side of snap
+			SCALE, //scales to opposite side of snap
+			SCALE_STRAIGHT //scales to the side of snap
 		};
 		SnapState state;
 		SnapType type;
@@ -54,21 +58,26 @@ protected:
 	void updateSizesRecursive();
 	void updateModelMatrix();
 	void notifyAllSnappedToThis();
+	std::deque<Side> sidesUpdateOrdered;
 public:
 	BoundingBox boundingBox;
 
 	SideSnap sideSnaps[4];
 	std::vector<GUICanvas*> snappedToThis;
 
+	std::vector<EventListener*> listeners;
+
 	GUISystem* guiSystem;
+
+	GUILayer layer=0;
 
 	Texture2D* texture = nullptr;
 	glm::mat4 model = glm::mat4(1.0f);
 
 	GUICanvas();
+	GUICanvas(const double x,const double y,const double width,const double height);
 	GUICanvas(const double x,const double y,const double width,const double height, GUISystem* guiSystem_);
 
-	std::vector<EventListener*> listeners;
 	void AddListener(EventListener* listener);
 	bool CheckClick(const double x, const double y) const;
 	void SetSnap(const Side side, const SideSnap::SnapType sideSnapType, const SideSnap::SnapState sideSnapState);
@@ -76,5 +85,7 @@ public:
 	void MarkDirty();
 	bool IsDirty() const;
 	void UpdateView(); //I think i should put this in SetSnap
+	void SetTexture(const char* path);
+	void SetTexture(Texture2D* texture_);
 	void Undirty();
 };

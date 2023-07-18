@@ -15,9 +15,10 @@
 #include "../../include/GL/VBO.h"
 #include "../../include/GL/VAO.h"
 #include "../../include/GL/EBO.h"
+#include "../../include/Time.h"
 
 #include <vector>
-#include <map>
+#include <unordered_set>
 
 #include "GUICommon.h"
 #include "GUICanvas.h"
@@ -36,7 +37,7 @@ protected:
 	GlobalState state;
 	GLFWwindow* window;
 
-	glm::ivec2 screenSize ={0,0};
+	glm::ivec2 screenSize = {0,0};
 
 	GLuint quadEBO;
 	GLuint screenQuadVBO;
@@ -50,15 +51,6 @@ protected:
 	GLuint canvasVAO;
 	Shader* canvasShader;
 
-	//struct CanvasVertex {
-	//	glm::vec2 position;
-	//	glm::vec2 texCoord;
-	//	CanvasVertex():position(0),texCoord(0){}
-	//	CanvasVertex(const glm::vec2 position_, const glm::vec2 texCoord_):position(position_),texCoord(texCoord_){}
-	//	CanvasVertex(const float x1, const float y1, const float x2, const float y2):position(x1,y1),texCoord(x2,y2){}
-	//	//glm::mat4 model;
-	//};
-
 	glm::mat4 projection = glm::mat4(1.0f);
 	glm::mat4 model = glm::mat4(1.0f);
 
@@ -66,7 +58,15 @@ protected:
 
 	std::vector<GUICanvas*> guiElements;
 
+	std::unordered_set<GUILayer> activeLayers;
 
+	void checkActivateAllEventListeners() const;
+	void updateViewAllGuiElements() const;
+
+	void updateOnScreenSizeChange();
+	mutable std::size_t rerendersCount = 0; //mutable to be able to change in RerenderToFramebuffer
+	void rerenderToFramebuffer() const;
+	void renderFromFramebuffer() const;
 public:
 
 	GUISystem();
@@ -80,18 +80,13 @@ public:
 	glm::ivec2 GetScreenSize() const;
 	GLFWwindow* GetWindow() const;
 
+	void AddCanvasElement(GUICanvas* element);
+
+	void ActivateLayer(const GUILayer layer);
+	void DeActivateLayer(const GUILayer layer);
+	bool IsLayerActive(const GUILayer layer) const;
+
 	void Init(GLFWwindow* window_);
-
-	void CheckActivateAllEventListeners() const;
-
-	void UpdateOnScreenSizeChange();
-
-	void RemapCanvasVertexBuffer();
-
-	mutable std::size_t rerendersCount = 0; //mutable to be able to change in RerenderToFramebuffer
-	void RerenderToFramebuffer() const;
-
-	void RenderFromFramebuffer() const;
 
 	void NewFrame();
 };

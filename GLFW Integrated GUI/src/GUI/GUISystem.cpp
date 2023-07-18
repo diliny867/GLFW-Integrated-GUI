@@ -24,6 +24,22 @@ GLFWwindow* GUISystem::GetWindow() const {
 	return window;
 }
 
+void GUISystem::AddCanvasElement(GUICanvas* element) {
+	element->guiSystem = this;
+	element->MarkDirty();
+	guiElements.push_back(element);
+}
+
+void GUISystem::ActivateLayer(const GUILayer layer) {
+	activeLayers.insert(layer);
+}
+void GUISystem::DeActivateLayer(const GUILayer layer) {
+	activeLayers.erase(layer);
+}
+bool GUISystem::IsLayerActive(const GUILayer layer) const {
+	return activeLayers.count(layer)>0;
+}
+
 void GUISystem::Init(GLFWwindow* window_) {
 	window = window_;
 
@@ -34,10 +50,10 @@ void GUISystem::Init(GLFWwindow* window_) {
 	mainFramebufferTexture = new Texture2D(screenSize.x,screenSize.y,GL_RGBA,GL_RGBA,GL_UNSIGNED_BYTE);
 	Texture2D::unbind();
 	FBO::attachTexture(mainFramebufferTexture->id,GL_COLOR_ATTACHMENT0);
-	//RBO::generate(mainRenderbuffer);
-	//RBO::bind(mainRenderbuffer);
-	//RBO::setStorage(mainRenderbuffer,GL_DEPTH24_STENCIL8,screenSize.x,screenSize.y);
-	//FBO::attachRBO(mainRenderbuffer,GL_DEPTH_STENCIL_ATTACHMENT);
+	RBO::generate(mainRenderbuffer);
+	RBO::bind(mainRenderbuffer);
+	RBO::setStorage(mainRenderbuffer,GL_DEPTH24_STENCIL8,screenSize.x,screenSize.y);
+	FBO::attachRBO(mainRenderbuffer,GL_DEPTH_STENCIL_ATTACHMENT);
 	if(!FBO::isComplete()) {
 		std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
 	}
@@ -77,53 +93,16 @@ void GUISystem::Init(GLFWwindow* window_) {
 	canvasShader->setMat4("model",model);
 	canvasShader->setInt("texture_diffuse1",0);
 
-	Texture2D* saulTexture = new Texture2D("resources/saul_3d.jpg",TextureType::Diffuse);
-	Texture2D* sillyTexture = new Texture2D("resources/silly.jpg",TextureType::Diffuse);
-
-	GUICanvas* gb = new GUICanvas(0,0,400,400,this);
-	auto ch_sc_f = EventListener::Check_SingleClick_Func;
-	gb->AddListener(new EventListener(gb,
-		ch_sc_f,
-	[](EventListener* el)->void {
-		el->guiElement->boundingBox.width -= 10;
-		el->guiElement->boundingBox.height += 5;
-		el->guiElement->MarkDirty();
-		el->guiElement->UpdateView();
-	},
-	[]() {
-		std::cout<<"CLICK\n";
-	}
-	));
-	gb->texture = saulTexture;
-	gb->UpdateView();
-	guiElements.push_back(gb);
-
-	GUICanvas* gb2 = new GUICanvas(300,100,300,60,this);
-	auto ch_hur_f = EventListener::Check_HoldUntilRelease_Func;
-	gb2->AddListener(new EventListener(gb2,
-		ch_hur_f,
-		[](EventListener* el)->void {
-		//el->guiElement->SetSnap(GUICanvas::BOTTOM,GUICanvas::SideSnap::SCALE,GUICanvas::SideSnap::WINDOW);
-		el->guiElement->boundingBox.x += InputManager::Mouse.deltaX;
-		el->guiElement->boundingBox.y -= InputManager::Mouse.deltaY;
-		el->guiElement->MarkDirty();
-		el->guiElement->UpdateView();
-	},
-	[]() {
-	    std::cout<<"HOLD\n";
-	}
-	));
-	gb2->texture = sillyTexture;
-	gb2->SetSnap(GUICanvas::LEFT,GUICanvas::SideSnap::SCALE,GUICanvas::SideSnap::CANVAS,gb);
-	gb2->SetSnap(GUICanvas::RIGHT,GUICanvas::SideSnap::SCALE,GUICanvas::SideSnap::WINDOW);
-	gb2->UpdateView();
-	guiElements.push_back(gb2);
+	activeLayers.insert(0);
 
 	MarkDirty();
 }
 
-void GUISystem::CheckActivateAllEventListeners() const {
+void GUISystem::checkActivateAllEventListeners() const {
 	for(const auto& element: guiElements) {
+		if(!IsLayerActive(element->layer)) {
+			continue;
+		}
 		for(const auto& listener: element->listeners) {
 			if(listener->Check()) {
 				listener->OnActivate();
@@ -132,7 +111,13 @@ void GUISystem::CheckActivateAllEventListeners() const {
 	}
 }
 
-void GUISystem::UpdateOnScreenSizeChange() {
+void GUISystem::updateViewAllGuiElements() const {
+	for(const auto& element: guiElements) {
+		element->UpdateView();
+	}
+}
+
+void GUISystem::updateOnScreenSizeChange() {
 	FBO::bind(mainFramebuffer);
 	projection = glm::ortho(0.0f,(float)screenSize.x,(float)screenSize.y,0.0f,-1000.0f,1000.0f);
 	//projection = glm::ortho(0.0f,(float)screenSize.x,0.0f,(float)screenSize.y,-100.0f,100.0f);
@@ -140,49 +125,36 @@ void GUISystem::UpdateOnScreenSizeChange() {
 	canvasShader->setMat4("projection",projection);
 
 	mainFramebufferTexture->setTexImage(screenSize.x,screenSize.y,GL_RGBA,GL_RGBA,GL_UNSIGNED_BYTE);
-	//RBO::bind(mainRenderbuffer);
-	//RBO::setStorage(mainRenderbuffer,GL_DEPTH24_STENCIL8,screenSize.x,screenSize.y);
+	RBO::bind(mainRenderbuffer);
+	RBO::setStorage(mainRenderbuffer,GL_DEPTH24_STENCIL8,screenSize.x,screenSize.y);
 	glViewport(0,0,screenSize.x,screenSize.y);
 	FBO::unbind();
 }
 
-void GUISystem::RemapCanvasVertexBuffer() {
-	//VBO::bind(canvasVBO);
-	//std::vector<CanvasVertex> canvasVertices(guiElements.size());
-	//for(const auto& element: guiElements) {
-	//	BoundingBox bb = element.boundingBox;
-	//	canvasVertices.push_back(CanvasVertex(bb.x,		 bb.y,		0.0f,0.0f));
-	//	canvasVertices.push_back(CanvasVertex(bb.x,		 bb.GetY2(),	0.0f,1.0f));
-	//	canvasVertices.push_back(CanvasVertex(bb.GetX2(),bb.GetY2(),	1.0f,1.0f));
-	//	canvasVertices.push_back(CanvasVertex(bb.GetX2(),bb.y,		1.0f,0.0f));
-	//}
-	//VBO::setData(canvasVBO,canvasVertices.size()*sizeof(CanvasVertex),canvasVertices.data(),GL_STATIC_DRAW);
-	//VBO::unbind();
-}
-
-void GUISystem::RerenderToFramebuffer() const {
+void GUISystem::rerenderToFramebuffer() const {
 	//set to correct framebuffer
 	FBO::bind(mainFramebuffer);
-	//glEnable(GL_DEPTH_TEST);
+	glEnable(GL_DEPTH_TEST);
 	glClearColor(1.0f,1.0f,1.0f,0.0f); //clear to transparent
-	glClear(GL_COLOR_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	//Draw Calls
 	VAO::bind(canvasVAO);
 	//EBO::bind(quadEBO);
 	canvasShader->use();
 	for(const auto& element: guiElements) {
+		if(element->texture == nullptr){ continue; }
 		canvasShader->setMat4("model",element->model);
+		canvasShader->setFloat("layer",(float)element->layer);
 		element->texture->activate(0);
 		//glDrawElements(GL_TRIANGLES,6,GL_UNSIGNED_INT,0);
 		glDrawArrays(GL_TRIANGLES,0,6);
 	}
 	FBO::unbind();
-	std::cout<<"Rerenders To Framebuffer Count: "<<rerendersCount<<std::endl;
-	rerendersCount++;
+	std::cout<<"Rerenders To Framebuffer: "<<++rerendersCount<<std::endl;
 }
 
-void GUISystem::RenderFromFramebuffer() const {
+void GUISystem::renderFromFramebuffer() const {
 	//Draw screen quad
 	FBO::unbind();
 	glDisable(GL_DEPTH_TEST);
@@ -200,7 +172,8 @@ void GUISystem::NewFrame() {
 		return;
 	}
 
-	CheckActivateAllEventListeners();
+	checkActivateAllEventListeners();
+	updateViewAllGuiElements();
 
 	int screenX = 0;
 	int screenY = 0;
@@ -208,7 +181,7 @@ void GUISystem::NewFrame() {
 	if(screenX!=screenSize.x||screenY!=screenSize.y) {
 		screenSize.x = screenX;
 		screenSize.y = screenY;
-		UpdateOnScreenSizeChange();
+		updateOnScreenSizeChange();
 		for(const auto& element:guiElements) {
 			element->MarkDirty(); //better mark them all dirty before, to prevent a lot of recursion (i think)
 		}
@@ -219,9 +192,9 @@ void GUISystem::NewFrame() {
 	}
 
 	if(dirty) {
-		RerenderToFramebuffer();
+		rerenderToFramebuffer();
 	}
 
-	RenderFromFramebuffer();
+	renderFromFramebuffer();
 	Undirty();
 }

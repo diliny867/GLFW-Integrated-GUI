@@ -7,6 +7,23 @@
 #include <unordered_set>
 #include <functional>
 
+
+typedef int GLFWKeyCode;
+class KeyMap {
+private:
+    std::unordered_set<GLFWKeyCode> keyMap;
+public:
+	bool contains(const GLFWKeyCode key) const {
+        return keyMap.count(key)>0;
+	}
+    void insert(const GLFWKeyCode key) {
+        keyMap.emplace(key);
+	}
+    void erase(const GLFWKeyCode key) {
+        keyMap.erase(key);
+	}
+};
+
 class InputManager {
 private:
     static void GLFW_KeyCallback(GLFWwindow* window,int key,int scancode,int action,int mods);
@@ -27,26 +44,25 @@ private:
     inline static std::function<void()> mouseScrollCallback = nullptr;
     inline static std::function<void()> mouseButtonCallback = nullptr;
 public:
-    inline static std::unordered_set<int> KeyMap;
-
     class Mouse {
     private:
         bool firstInput = true;
     public:
         Mouse(const double posX_,const double posY_):posX(posX_),posY(posY_){}
         Mouse():Mouse(0,0){}
-        double posX;
-        double posY;
-        double deltaX;
-        double deltaY;
-        double scrollOffsetX;
-        double scrollOffsetY;
+        double posX=0;
+        double posY=0;
+        double deltaX=0;
+        double deltaY=0;
+        double scrollOffsetX=0;
+        double scrollOffsetY=0;
         bool leftPress = false;
         bool rightPress = false;
         friend InputManager;
     };
-    inline static GLFWwindow* Window;
-    inline static Mouse Mouse;
+    inline static GLFWwindow* window;
+    inline static KeyMap keyMap; //Stores GLFW Keycodes
+    inline static Mouse mouse;
     static void Init(GLFWwindow* window_);
     //static void SetKeyCallback(keyfun callback);
     //static void SetMouseCursorCallback(cursorposfun callback);

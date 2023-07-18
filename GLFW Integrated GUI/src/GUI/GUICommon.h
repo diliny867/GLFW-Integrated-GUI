@@ -1,5 +1,7 @@
 #pragma once
 
+typedef int GUILayer;
+
 constexpr unsigned int quadIndices[] = {
 	0, 1, 2,
 	2, 3, 0

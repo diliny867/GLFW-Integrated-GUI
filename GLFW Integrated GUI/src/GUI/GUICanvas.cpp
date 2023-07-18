@@ -7,13 +7,16 @@
 GUICanvas::GUICanvas():boundingBox(0,0,0,0),guiSystem(nullptr) {
 	updateModelMatrix();
 }
+
+GUICanvas::GUICanvas(const double x, const double y, const double width, const double height):boundingBox(x,y,width,height) {}
+
 GUICanvas::GUICanvas(const double x,const double y,const double width,const double height,GUISystem*guiSystem_):boundingBox(x,y,width,height),guiSystem(guiSystem_) {
 	updateModelMatrix();
 }
 
 void GUICanvas::AddListener(EventListener*listener) {
+	listener->guiElement = this;
 	listeners.push_back(listener);
-	listeners.back()->guiElement = this;
 }
 
 bool GUICanvas::CheckClick(const double x,const double y) const {
@@ -30,6 +33,7 @@ void GUICanvas::SetSnap(const Side side,const SideSnap::SnapType sideSnapType,co
 	MarkDirty();
 }
 void GUICanvas::SetSnap(const Side side,const SideSnap::SnapType sideSnapType,const SideSnap::SnapState sideSnapState,GUICanvas* sideSnap) {
+	if(sideSnap == this){ return; }
 	const SideSnap newSnap = SideSnap(sideSnapState,sideSnapType,sideSnap);
 	const int snapIndex = sideToIndex(side);
 	if(sideSnaps[snapIndex] == newSnap) {
@@ -83,10 +87,9 @@ bool GUICanvas::IsDirty() const {
 	return dirty;
 }
 
-void GUICanvas::updateSizesRecursive(const Side side) { //sorry for 3 identical switches
+void GUICanvas::updateSizesRecursive(const Side side) {
 	//TODO: add check if snaps are identical or cyclic
-	SideSnap sideSnap;
-	sideSnap = sideSnaps[sideToIndex(side)];
+	 const SideSnap sideSnap = sideSnaps[sideToIndex(side)];
 	if(sideSnap.state == SideSnap::NO_SNAP) {
 		return;
 	}
@@ -94,26 +97,26 @@ void GUICanvas::updateSizesRecursive(const Side side) { //sorry for 3 identical 
 		const glm::ivec2 screenSize = guiSystem->GetScreenSize();
 		switch(side) {
 		case Side::LEFT:
-			if(sideSnap.type == SideSnap::SCALE) {
+			if(sideSnap.type == SideSnap::SCALE || sideSnap.type == SideSnap::SCALE_STRAIGHT) {
 				boundingBox.width = -boundingBox.x+boundingBox.width;
 			}
 			boundingBox.x = 0;
 			break;
 		case Side::RIGHT:
-			if(sideSnap.type == SideSnap::DRAG) {
+			if(sideSnap.type == SideSnap::DRAG || sideSnap.type == SideSnap::DRAG_STRAIGHT) {
 				boundingBox.x = screenSize.x-boundingBox.width;
 			}else {
 				boundingBox.width = screenSize.x-boundingBox.x;
 			}
 			break;
 		case Side::TOP:
-			if(sideSnap.type == SideSnap::SCALE) {
+			if(sideSnap.type == SideSnap::SCALE || sideSnap.type == SideSnap::SCALE_STRAIGHT) {
 				boundingBox.height = -boundingBox.y+boundingBox.height;
 			}
 			boundingBox.y = 0;
 			break;
 		case Side::BOTTOM:
-			if(sideSnap.type == SideSnap::DRAG) {
+			if(sideSnap.type == SideSnap::DRAG || sideSnap.type == SideSnap::DRAG_STRAIGHT) {
 				boundingBox.y = screenSize.y-boundingBox.height;
 			}else {
 				boundingBox.height = screenSize.y-boundingBox.y;
@@ -124,34 +127,77 @@ void GUICanvas::updateSizesRecursive(const Side side) { //sorry for 3 identical 
 		}
 	} 
 	if(sideSnap.state == SideSnap::CANVAS){
-		sideSnap.canvas->updateSizesRecursive(side);
+		GUICanvas* snapCanvas = sideSnap.canvas;
+		snapCanvas->updateSizesRecursive(side);
 		const double oldX = boundingBox.x;
 		const double oldY = boundingBox.y;
 		switch(side) {
 		case Side::LEFT:
-			boundingBox.x = sideSnap.canvas->boundingBox.GetX2();
-			if(sideSnap.type == SideSnap::SCALE) {
+			switch (sideSnap.type) {
+			case SideSnap::DRAG:
+				boundingBox.x = snapCanvas->boundingBox.GetX2();
+				break;
+			case SideSnap::DRAG_STRAIGHT:
+				boundingBox.x = snapCanvas->boundingBox.x;
+				break;
+			case SideSnap::SCALE:
+				boundingBox.x = snapCanvas->boundingBox.GetX2();
 				boundingBox.width = boundingBox.width+oldX-boundingBox.x;
+				break;
+			case SideSnap::SCALE_STRAIGHT:
+				boundingBox.width = boundingBox.GetX2()-snapCanvas->boundingBox.x;
+				boundingBox.x = snapCanvas->boundingBox.x;
+				break;
 			}
 			break;
 		case Side::RIGHT:
-			if(sideSnap.type == SideSnap::DRAG) {
-				boundingBox.x = oldX+sideSnap.canvas->boundingBox.x-boundingBox.GetX2();
-			}else {
-				boundingBox.width = sideSnap.canvas->boundingBox.x-boundingBox.x;
+			switch(sideSnap.type) {
+			case SideSnap::DRAG:
+				boundingBox.x = oldX+snapCanvas->boundingBox.x-boundingBox.GetX2();
+				break;
+			case SideSnap::DRAG_STRAIGHT:
+				boundingBox.x = snapCanvas->boundingBox.GetX2()-boundingBox.width;
+				break;
+			case SideSnap::SCALE:
+				boundingBox.width = snapCanvas->boundingBox.x-boundingBox.x;
+				break;
+			case SideSnap::SCALE_STRAIGHT:
+				boundingBox.width = snapCanvas->boundingBox.GetX2()-boundingBox.x;
+				break;
 			}
 			break;
 		case Side::TOP:
-			boundingBox.y = sideSnap.canvas->boundingBox.GetY2();
-			if(sideSnap.type == SideSnap::SCALE) {
+			switch(sideSnap.type) {
+			case SideSnap::DRAG:
+				boundingBox.y = snapCanvas->boundingBox.GetY2();
+				break;
+			case SideSnap::DRAG_STRAIGHT:
+				boundingBox.y = snapCanvas->boundingBox.y;
+				break;
+			case SideSnap::SCALE:
+				boundingBox.y = snapCanvas->boundingBox.GetY2();
 				boundingBox.height = boundingBox.height+oldY-boundingBox.y;
+				break;
+			case SideSnap::SCALE_STRAIGHT:
+				boundingBox.height = boundingBox.GetY2()-snapCanvas->boundingBox.y;
+				boundingBox.y = snapCanvas->boundingBox.y;
+				break;
 			}
 			break;
 		case Side::BOTTOM:
-			if(sideSnap.type == SideSnap::DRAG) {
-				boundingBox.y = oldY+sideSnap.canvas->boundingBox.y-boundingBox.GetY2();
-			} else{
-				boundingBox.height = sideSnap.canvas->boundingBox.y-boundingBox.y;
+			switch(sideSnap.type) {
+			case SideSnap::DRAG:
+				boundingBox.y = oldY+snapCanvas->boundingBox.y-boundingBox.GetY2();
+				break;
+			case SideSnap::DRAG_STRAIGHT:
+				boundingBox.y = snapCanvas->boundingBox.GetY2()-boundingBox.height;
+				break;
+			case SideSnap::SCALE:
+				boundingBox.height = snapCanvas->boundingBox.y-boundingBox.y;
+				break;
+			case SideSnap::SCALE_STRAIGHT:
+				boundingBox.height = snapCanvas->boundingBox.GetY2()-boundingBox.y;
+				break;
 			}
 			break;
 		default:
@@ -163,9 +209,18 @@ void GUICanvas::updateSizesRecursive() {
 	if(!dirty) {
 		return;
 	}
+	
 	for(int i=0;i<4;i++) {
-		updateSizesRecursive(indexToSide(i));
+		if(sideSnaps[i].type == SideSnap::DRAG || sideSnaps[i].type == SideSnap::DRAG_STRAIGHT) {
+			sidesUpdateOrdered.push_front(indexToSide(i));
+		}else {
+			sidesUpdateOrdered.push_back(indexToSide(i));
+		}
 	}
+	for(const auto& side: sidesUpdateOrdered) {
+		updateSizesRecursive(side);
+	}
+	sidesUpdateOrdered.clear();
 }
 
 
@@ -181,6 +236,14 @@ void GUICanvas::UpdateView() {
 		Undirty();
 	}
 }
+
+void GUICanvas::SetTexture(const char* path) {
+	texture = new Texture2D(path,TextureType::Diffuse);
+}
+void GUICanvas::SetTexture(Texture2D* texture_) {
+	texture = texture_;
+}
+
 void GUICanvas::Undirty() {
 	dirty = false;
 }

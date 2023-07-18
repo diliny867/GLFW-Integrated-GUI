@@ -51,9 +51,9 @@
     <ClInclude Include="include\GL\Shader.h" />
     <ClInclude Include="include\GL\stb_image.h" />
     <ClInclude Include="include\GL\Texture2D.h" />
-    <ClInclude Include="include\GL\Time.h" />
     <ClInclude Include="include\GL\VAO.h" />
     <ClInclude Include="include\GL\VBO.h" />
+    <ClInclude Include="include\Time.h" />
     <ClInclude Include="src\GUI\BoundingBox.h" />
     <ClInclude Include="src\GUI\EventListener.h" />
     <ClInclude Include="src\GUI\GUICanvas.h" />

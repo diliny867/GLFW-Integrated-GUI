@@ -28,6 +28,9 @@
     <Filter Include="Resource Files\Shaders\GUI">
       <UniqueIdentifier>{41216111-b795-4785-a7bc-253c291dda76}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\GUI">
+      <UniqueIdentifier>{48b0a147-711a-482a-bcfb-7eebc3568966}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Source.cpp">
@@ -66,14 +69,14 @@
     <ClCompile Include="include\GL\EBO.cpp">
       <Filter>Source Files\GL</Filter>
     </ClCompile>
-    <ClCompile Include="C:\Users\Brivzemnieka\Desktop\Новая папка\Cpp\External Libraries\OpenGL\glad.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\GUI\GUISystem.cpp">
       <Filter>Source Files\GUI</Filter>
     </ClCompile>
     <ClCompile Include="src\InputManager.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\Brivzemnieka\Desktop\Новая папка\Cpp\External Libraries\OpenGL\glad.c">
+      <Filter>Source Files\GL</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -103,26 +106,11 @@
     <ClInclude Include="include\GL\Shader.h">
       <Filter>Header Files\GL</Filter>
     </ClInclude>
-    <ClInclude Include="include\GL\Time.h">
-      <Filter>Header Files\GL</Filter>
-    </ClInclude>
     <ClInclude Include="include\GL\VAO.h">
       <Filter>Header Files\GL</Filter>
     </ClInclude>
     <ClInclude Include="include\GL\VBO.h">
       <Filter>Header Files\GL</Filter>
-    </ClInclude>
-    <ClInclude Include="src\GUI\GUICanvas.h">
-      <Filter>Source Files\GUI</Filter>
-    </ClInclude>
-    <ClInclude Include="src\GUI\BoundingBox.h">
-      <Filter>Source Files\GUI</Filter>
-    </ClInclude>
-    <ClInclude Include="src\GUI\GUISystem.h">
-      <Filter>Source Files\GUI</Filter>
-    </ClInclude>
-    <ClInclude Include="src\GUI\EventListener.h">
-      <Filter>Source Files\GUI</Filter>
     </ClInclude>
     <ClInclude Include="include\GL\FBO.h">
       <Filter>Header Files\GL</Filter>
@@ -139,10 +127,25 @@
     <ClInclude Include="include\GL\EBO.h">
       <Filter>Header Files\GL</Filter>
     </ClInclude>
-    <ClInclude Include="src\GUI\GUICommon.h">
-      <Filter>Source Files\GUI</Filter>
-    </ClInclude>
     <ClInclude Include="src\InputManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GUI\BoundingBox.h">
+      <Filter>Header Files\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GUI\EventListener.h">
+      <Filter>Header Files\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GUI\GUICanvas.h">
+      <Filter>Header Files\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GUI\GUICommon.h">
+      <Filter>Header Files\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GUI\GUISystem.h">
+      <Filter>Header Files\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Time.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

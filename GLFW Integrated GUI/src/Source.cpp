@@ -8,11 +8,11 @@
 #include <iostream>
 #include <functional>
 
-#include "../include/GL/Time.h"
 #include "../include/GL/VBO.h"
 #include "../include/GL/VAO.h"
 #include "../include/GL/Camera.h"
 #include "../include/GL/Shader.h"
+#include "../include/Time.h"
 
 #include "InputManager.h"
 #include "GUI/GUISystem.h"
@@ -30,7 +30,7 @@ float SCR_HEIGHT = 600;
 
 Camera camera(glm::vec3(0.0f,0.0f,0.0f));
 
-GUISystem gs;
+GUISystem mainGUI;
 
 int main() {
     glfwInit();
@@ -62,8 +62,8 @@ int main() {
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
-    //glEnable(GL_DEPTH_TEST);
-    //glDepthFunc(GL_LESS);
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
 	//glEnable(GL_LINE_SMOOTH);
     //glHint(GL_LINE_SMOOTH_HINT,GL_NICEST);
 
@@ -73,8 +73,8 @@ int main() {
     InputManager::SetMouseButtonCallback(mouse_button_callback);
     InputManager::SetMouseCursorCallback(mouse_cursor_callback);
     InputManager::SetMouseScrollCallback(mouse_scroll_callback);
-    InputManager::Mouse.posX = SCR_WIDTH/2;
-    InputManager::Mouse.posY = SCR_HEIGHT/2;
+    InputManager::mouse.posX = SCR_WIDTH/2;
+    InputManager::mouse.posY = SCR_HEIGHT/2;
 
     glm::mat4 projection = glm::ortho(0.0f,SCR_WIDTH,SCR_HEIGHT,0.0f,-1000.0f,1000.0f);
     glm::mat4 model = glm::mat4(1.0f);
@@ -83,7 +83,76 @@ int main() {
         projection = glm::ortho(0.0f,SCR_WIDTH,SCR_HEIGHT,0.0f,-1000.0f,1000.0f);
     };
 
-    gs.Init(window);
+    Texture2D* saulTexture = new Texture2D("resources/saul_3d.jpg",TextureType::Diffuse);
+    Texture2D* sillyTexture = new Texture2D("resources/silly.jpg",TextureType::Diffuse);
+    Texture2D* earthBurnTexture = new Texture2D("resources/earth_burn.png",TextureType::Diffuse);
+
+    mainGUI.Init(window);
+
+    GUICanvas* exitButton = new GUICanvas(40,400,50,200,&mainGUI);
+    exitButton->AddListener(new EventListener(
+        EL_Check_SingleClick_Func,
+        [](EventListener* el)->void {
+        },
+        [&]() {
+            glfwSetWindowShouldClose(window,true);
+        }
+    ));
+    exitButton->SetSnap(GUICanvas::RIGHT,GUICanvas::SideSnap::DRAG,GUICanvas::SideSnap::WINDOW);
+    exitButton->SetSnap(GUICanvas::TOP,GUICanvas::SideSnap::DRAG,GUICanvas::SideSnap::WINDOW);
+    exitButton->SetTexture(earthBurnTexture);
+    exitButton->layer = 1;
+    mainGUI.AddCanvasElement(exitButton);
+    mainGUI.ActivateLayer(1);
+
+    GUICanvas* gb = new GUICanvas(0,0,400,400,&mainGUI);
+    gb->AddListener(new EventListener(
+        EL_Check_SingleClick_Func,
+        [](EventListener* el)->void {
+            el->guiElement->boundingBox.width *= 0.95;
+			el->guiElement->boundingBox.height += 5;
+			el->guiElement->MarkDirty();
+        },
+        []() {
+            std::cout<<"CLICK\n";
+        }
+        ));
+    gb->texture = saulTexture;
+    gb->UpdateView();
+    mainGUI.AddCanvasElement(gb);
+
+    GUICanvas* gb2 = new GUICanvas(300,100,300,60,&mainGUI);
+    gb2->AddListener(new EventListener(
+        EL_Check_HoldUntilRelease_Func,
+        [](EventListener* el)->void {
+            const InputManager::Mouse& mouse = InputManager::mouse;
+            if(mouse.deltaX!=0||mouse.deltaY!=0){
+                el->guiElement->boundingBox.x += mouse.deltaX;
+                el->guiElement->boundingBox.y += mouse.deltaY;
+                el->guiElement->MarkDirty();
+            }
+        },
+        []() {
+            std::cout<<"LEFT HOLD\n";
+        }
+        ));
+    gb2->AddListener(new EventListener(
+        EL_Check_HoldUntilReleaseRMB_Func,
+        [](EventListener* el)->void {
+			//const InputManager::Mouse& mouse = InputManager::mouse;
+
+        },
+        []() {
+            std::cout<<"RIGHT HOLD\n";
+        }
+		));
+    gb2->texture = sillyTexture;
+    gb2->SetSnap(GUICanvas::LEFT,GUICanvas::SideSnap::SCALE,GUICanvas::SideSnap::CANVAS,gb);
+    gb2->SetSnap(GUICanvas::RIGHT,GUICanvas::SideSnap::SCALE,GUICanvas::SideSnap::WINDOW);
+    //gb2->SetSnap(GUICanvas::TOP,GUICanvas::SideSnap::SCALE_STRAIGHT,GUICanvas::SideSnap::CANVAS,gb);
+    //gb2->SetSnap(GUICanvas::BOTTOM,GUICanvas::SideSnap::DRAG_STRAIGHT,GUICanvas::SideSnap::CANVAS,gb);
+    gb2->UpdateView();
+    mainGUI.AddCanvasElement(gb2);
 
 
     //glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
@@ -93,9 +162,9 @@ int main() {
         InputManager::PollEvents();
 
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT /*| GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT*/);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT/* | GL_STENCIL_BUFFER_BIT*/);
 
-        gs.NewFrame();
+        mainGUI.NewFrame();
 
         glfwSwapBuffers(window);
     }
@@ -112,8 +181,8 @@ void printFPS() {
 }
 
 void key_callback() {
-    if(InputManager::KeyMap.count(GLFW_KEY_ESCAPE)) {
-        glfwSetWindowShouldClose(InputManager::Window,true);
+    if(InputManager::keyMap.contains(GLFW_KEY_ESCAPE)) {
+        glfwSetWindowShouldClose(InputManager::window,true);
     }
 }
 

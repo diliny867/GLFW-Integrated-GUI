@@ -4,7 +4,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include "Time.h"
+#include "../Time.h"
 
 enum Camera_Movement {
     FORWARD,

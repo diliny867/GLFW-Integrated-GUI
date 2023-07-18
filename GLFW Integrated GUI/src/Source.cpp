@@ -88,13 +88,15 @@ int main() {
     Texture2D* earthBurnTexture = new Texture2D("resources/earth_burn.png",TextureType::Diffuse);
 
     mainGUI.Init(window);
+    mainGUI.SetClickDetectionUnderLayer(false);
 
-    GUICanvas* exitButton = new GUICanvas(40,400,50,200,&mainGUI);
+    GUICanvas* exitButton = new GUICanvas(40,400,50,50,&mainGUI);
     exitButton->AddListener(new EventListener(
         EL_Check_SingleClick_Func,
         [](EventListener* el)->void {
         },
         [&]() {
+            std::cout<<"Exiting...\n";
             glfwSetWindowShouldClose(window,true);
         }
     ));
@@ -103,7 +105,7 @@ int main() {
     exitButton->SetTexture(earthBurnTexture);
     exitButton->layer = 1;
     mainGUI.AddCanvasElement(exitButton);
-    mainGUI.ActivateLayer(1);
+    mainGUI.EnableLayerChecks(1);
 
     GUICanvas* gb = new GUICanvas(0,0,400,400,&mainGUI);
     gb->AddListener(new EventListener(
@@ -168,9 +170,6 @@ int main() {
 
         glfwSwapBuffers(window);
     }
-
-    //VBO::deleteIt(vbo);
-    //VAO::deleteIt(vao);
     
     glfwTerminate();
     return 0;
@@ -182,7 +181,10 @@ void printFPS() {
 
 void key_callback() {
     if(InputManager::keyMap.contains(GLFW_KEY_ESCAPE)) {
-        glfwSetWindowShouldClose(InputManager::window,true);
+        mainGUI.Deactivate();
+    }
+    if(InputManager::keyMap.contains(GLFW_KEY_ENTER)) {
+        mainGUI.Activate();
     }
 }
 

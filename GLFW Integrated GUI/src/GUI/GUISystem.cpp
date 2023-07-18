@@ -3,7 +3,7 @@
 
 GUISystem::GUISystem():state(ACTIVE) {}
 
-void GUISystem::Disable() {
+void GUISystem::Deactivate() {
 	state = DISABLED;
 }
 void GUISystem::Activate() {
@@ -30,14 +30,33 @@ void GUISystem::AddCanvasElement(GUICanvas* element) {
 	guiElements.push_back(element);
 }
 
-void GUISystem::ActivateLayer(const GUILayer layer) {
-	activeLayers.insert(layer);
+void GUISystem::EnableLayerChecks(const GUILayer layer) {
+	activeCheckedLayers.insert(layer);
 }
-void GUISystem::DeActivateLayer(const GUILayer layer) {
-	activeLayers.erase(layer);
+void GUISystem::DisableLayerChecks(const GUILayer layer) {
+	activeCheckedLayers.erase(layer);
 }
-bool GUISystem::IsLayerActive(const GUILayer layer) const {
-	return activeLayers.count(layer)>0;
+bool GUISystem::IsLayerChecksEnabled(const GUILayer layer) const {
+	return activeCheckedLayers.count(layer)>0 && (hiddenLayerChecks || hiddenLayers.count(layer)==0);
+}
+
+void GUISystem::HideLayer(const GUILayer layer) {
+	hiddenLayers.insert(layer);
+}
+void GUISystem::ShowLayer(const GUILayer layer) {
+	hiddenLayers.erase(layer);
+}
+bool GUISystem::IsLayerHidden(const GUILayer layer) const {
+	return hiddenLayers.count(layer)>0;
+}
+
+
+
+void GUISystem::SetClickDetectionUnderLayer(const bool enabled) {
+	clickDetectUnderLayer = enabled;
+}
+void GUISystem::SetHiddenLayerChecks(const bool enabled) {
+	hiddenLayerChecks = enabled;
 }
 
 void GUISystem::Init(GLFWwindow* window_) {
@@ -93,20 +112,41 @@ void GUISystem::Init(GLFWwindow* window_) {
 	canvasShader->setMat4("model",model);
 	canvasShader->setInt("texture_diffuse1",0);
 
-	activeLayers.insert(0);
+	activeCheckedLayers.insert(0);
 
 	MarkDirty();
 }
 
 void GUISystem::checkActivateAllEventListeners() const {
-	for(const auto& element: guiElements) {
-		if(!IsLayerActive(element->layer)) {
-			continue;
-		}
-		for(const auto& listener: element->listeners) {
-			if(listener->Check()) {
-				listener->OnActivate();
+	if(clickDetectUnderLayer) {
+		for(const auto& element: guiElements) {
+			if(!IsLayerChecksEnabled(element->layer)) {
+				continue;
 			}
+			for(const auto& listener: element->listeners) {
+				if(listener->Check()) {
+					listener->OnActivate();
+				}
+			}
+		}
+	}else {
+		EventListener* topListener = nullptr;
+		GUILayer topLayer = INT_MIN;
+		for(const auto& element: guiElements) {
+			if(!IsLayerChecksEnabled(element->layer)) {
+				continue;
+			}
+			for(const auto& listener: element->listeners) {
+				if(listener->Check()) {
+					if(element->layer>topLayer) {
+						topListener = listener;
+						topLayer = element->layer;
+					}
+				}
+			}
+		}
+		if(topListener!=nullptr) {
+			topListener->OnActivate();
 		}
 	}
 }
@@ -132,7 +172,7 @@ void GUISystem::updateOnScreenSizeChange() {
 }
 
 void GUISystem::rerenderToFramebuffer() const {
-	//set to correct framebuffer
+	//Set to correct framebuffer
 	FBO::bind(mainFramebuffer);
 	glEnable(GL_DEPTH_TEST);
 	glClearColor(1.0f,1.0f,1.0f,0.0f); //clear to transparent
@@ -143,7 +183,7 @@ void GUISystem::rerenderToFramebuffer() const {
 	//EBO::bind(quadEBO);
 	canvasShader->use();
 	for(const auto& element: guiElements) {
-		if(element->texture == nullptr){ continue; }
+		if(hiddenLayers.count(element->layer)>0 || element->texture == nullptr){ continue; }
 		canvasShader->setMat4("model",element->model);
 		canvasShader->setFloat("layer",(float)element->layer);
 		element->texture->activate(0);
@@ -155,7 +195,7 @@ void GUISystem::rerenderToFramebuffer() const {
 }
 
 void GUISystem::renderFromFramebuffer() const {
-	//Draw screen quad
+	//Draw framebuffer to screen quad
 	FBO::unbind();
 	glDisable(GL_DEPTH_TEST);
 	VAO::bind(screenQuadVAO);

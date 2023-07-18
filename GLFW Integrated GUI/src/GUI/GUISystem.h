@@ -19,6 +19,7 @@
 
 #include <vector>
 #include <unordered_set>
+#include <cmath>
 
 #include "GUICommon.h"
 #include "GUICanvas.h"
@@ -58,7 +59,11 @@ protected:
 
 	std::vector<GUICanvas*> guiElements;
 
-	std::unordered_set<GUILayer> activeLayers;
+	std::unordered_set<GUILayer> activeCheckedLayers;
+	std::unordered_set<GUILayer> hiddenLayers;
+
+	bool clickDetectUnderLayer = true;
+	bool hiddenLayerChecks = false;
 
 	void checkActivateAllEventListeners() const;
 	void updateViewAllGuiElements() const;
@@ -71,7 +76,7 @@ public:
 
 	GUISystem();
 
-	void Disable();
+	void Deactivate();
 	void Activate();
 
 	void MarkDirty();
@@ -82,9 +87,15 @@ public:
 
 	void AddCanvasElement(GUICanvas* element);
 
-	void ActivateLayer(const GUILayer layer);
-	void DeActivateLayer(const GUILayer layer);
-	bool IsLayerActive(const GUILayer layer) const;
+	void EnableLayerChecks(const GUILayer layer);
+	void DisableLayerChecks(const GUILayer layer);
+	bool IsLayerChecksEnabled(const GUILayer layer) const;
+	void HideLayer(const GUILayer layer); //Do note that layer still checks its listeners
+	void ShowLayer(const GUILayer layer);
+	bool IsLayerHidden(const GUILayer layer) const;
+
+	void SetClickDetectionUnderLayer(const bool enabled);
+	void SetHiddenLayerChecks(const bool enabled);
 
 	void Init(GLFWwindow* window_);
 

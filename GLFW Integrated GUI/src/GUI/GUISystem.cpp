@@ -92,11 +92,7 @@ void GUISystem::Init(GLFWwindow* window_) {
 	VBO::bind(canvasVBO);
 	VAO::generate(canvasVAO);
 	VAO::addAttrib(canvasVAO,0,2,GL_FLOAT,GL_FALSE,4*sizeof(float),(void*)0);
-	VAO::addAttrib(canvasVAO,1,2,GL_FLOAT,GL_FALSE,4*sizeof(float),(void*)(void*)(2*sizeof(float)));
-	//VAO::addAttrib(canvasVAO,0,2,GL_FLOAT,GL_FALSE,sizeof(CanvasVertex),(void*)offsetof(CanvasVertex,position));
-	//VAO::addAttrib(canvasVAO,1,2,GL_FLOAT,GL_FALSE,sizeof(CanvasVertex),(void*)offsetof(CanvasVertex,texCoord));
-	//VAO::addAttrib(canvasVAO,2,4,GL_FLOAT,GL_FALSE,sizeof(CanvasVertex),(void*)offsetof(CanvasVertex,model));
-	//VAO::setAttribDivisor(canvasVAO,1,1);
+	VAO::addAttrib(canvasVAO,1,2,GL_FLOAT,GL_FALSE,4*sizeof(float),(void*)(2*sizeof(float)));
 	VAO::unbind();
 
 	projection = glm::ortho(0.0f,(float)screenSize.x,(float)screenSize.y,0.0f,-1000.0f,1000.0f);
@@ -126,10 +122,13 @@ void GUISystem::checkActivateAllEventListeners() const {
 			for(const auto& listener: element->listeners) {
 				if(listener->Check()) {
 					listener->OnActivate();
+				}else {
+					listener->OnNotActive();
 				}
 			}
 		}
 	}else {
+		std::vector<EventListener*> unactiveListeners;
 		EventListener* topListener = nullptr;
 		GUILayer topLayer = INT_MIN;
 		for(const auto& element: guiElements) {
@@ -142,11 +141,16 @@ void GUISystem::checkActivateAllEventListeners() const {
 						topListener = listener;
 						topLayer = element->layer;
 					}
+				}else {
+					unactiveListeners.push_back(listener);
 				}
 			}
 		}
 		if(topListener!=nullptr) {
 			topListener->OnActivate();
+		}
+		for(const auto& listener: unactiveListeners) {
+			listener->OnNotActive();
 		}
 	}
 }
@@ -175,6 +179,7 @@ void GUISystem::rerenderToFramebuffer() const {
 	//Set to correct framebuffer
 	FBO::bind(mainFramebuffer);
 	glEnable(GL_DEPTH_TEST);
+	glDisable(GL_SCISSOR_TEST);
 	glClearColor(1.0f,1.0f,1.0f,0.0f); //clear to transparent
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -184,7 +189,7 @@ void GUISystem::rerenderToFramebuffer() const {
 	canvasShader->use();
 	for(const auto& element: guiElements) {
 		if(hiddenLayers.count(element->layer)>0 || element->texture == nullptr){ continue; }
-		canvasShader->setMat4("model",element->model);
+		canvasShader->setMat4("model",element->GetDrawModelMatrix());
 		canvasShader->setFloat("layer",(float)element->layer);
 		element->texture->activate(0);
 		//glDrawElements(GL_TRIANGLES,6,GL_UNSIGNED_INT,0);

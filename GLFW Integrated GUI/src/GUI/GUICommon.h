@@ -1,6 +1,18 @@
 #pragma once
 
+#include <glm/glm.hpp>
+
 typedef int GUILayer;
+
+inline glm::vec2 minMaxFrom4(const float a,const float b,const float c,const float d) {
+	const float min1 = (a < b) ? a : b;
+	const float min2 = (c < d) ? c : d;
+
+	const float max1 = (a > b) ? a : b;
+	const float max2 = (c > d) ? c : d;
+
+	return glm::vec2((min1 < min2) ? min1 : min2,(max1 > max2) ? max1 : max2);
+}
 
 constexpr unsigned int quadIndices[] = {
 	0, 1, 2,

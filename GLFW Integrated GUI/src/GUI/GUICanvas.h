@@ -11,6 +11,7 @@
 
 #include "BoundingBox.h"
 #include "GUICommon.h"
+#include "GUITransform.h"
 
 #include <deque>
 
@@ -58,9 +59,16 @@ protected:
 	void updateSizesRecursive();
 	void updateModelMatrix();
 	void notifyAllSnappedToThis();
-	std::deque<Side> sidesUpdateOrdered;
-public:
 	BoundingBox boundingBox;
+public:
+
+	GUILayer layer=0;
+
+	glm::mat4 model = glm::mat4(1.0f);
+
+	glm::mat4 viewTransform = glm::mat4(1.0f);
+
+	GUITransform transform;
 
 	SideSnap sideSnaps[4];
 	std::vector<GUICanvas*> snappedToThis;
@@ -69,23 +77,24 @@ public:
 
 	GUISystem* guiSystem;
 
-	GUILayer layer=0;
-
 	Texture2D* texture = nullptr;
-	glm::mat4 model = glm::mat4(1.0f);
 
 	GUICanvas();
-	GUICanvas(const double x,const double y,const double width,const double height);
-	GUICanvas(const double x,const double y,const double width,const double height, GUISystem* guiSystem_);
+	//GUICanvas(const double x,const double y,const double width,const double height);
+	//GUICanvas(const double x,const double y,const double width,const double height, GUISystem* guiSystem_);
+	GUICanvas(const float x,const float y,const float width,const float height);
+	GUICanvas(const float x,const float y,const float width,const float height, GUISystem* guiSystem_);
 
 	void AddListener(EventListener* listener);
-	bool CheckClick(const double x, const double y) const;
+	bool CheckClick(const float x, const float y) const;
 	void SetSnap(const Side side, const SideSnap::SnapType sideSnapType, const SideSnap::SnapState sideSnapState);
 	void SetSnap(const Side side, const SideSnap::SnapType sideSnapType, const SideSnap::SnapState sideSnapState, GUICanvas* sideSnap);
 	void MarkDirty();
 	bool IsDirty() const;
-	void UpdateView(); //I think i should put this in SetSnap
+	void UpdateView();
+	void UpdateBoundingBox();
 	void SetTexture(const char* path);
 	void SetTexture(Texture2D* texture_);
+	glm::mat4 GetDrawModelMatrix() const;
 	void Undirty();
 };

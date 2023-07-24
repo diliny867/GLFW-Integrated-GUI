@@ -4,13 +4,19 @@
 #include "GUISystem.h"
 
 
-GUICanvas::GUICanvas():boundingBox(0,0,0,0),guiSystem(nullptr) {
+GUICanvas::GUICanvas():boundingBox(0,0,0,0),transform(boundingBox),guiSystem(nullptr) {
 	updateModelMatrix();
 }
-
-GUICanvas::GUICanvas(const double x, const double y, const double width, const double height):boundingBox(x,y,width,height) {}
-
-GUICanvas::GUICanvas(const double x,const double y,const double width,const double height,GUISystem*guiSystem_):boundingBox(x,y,width,height),guiSystem(guiSystem_) {
+//GUICanvas::GUICanvas(const double x, const double y, const double width, const double height):boundingBox(x,y,width,height),guiSystem(nullptr) {
+//	updateModelMatrix();
+//}
+//GUICanvas::GUICanvas(const double x,const double y,const double width,const double height,GUISystem*guiSystem_):boundingBox(x,y,width,height),guiSystem(guiSystem_) {
+//	updateModelMatrix();
+//}
+GUICanvas::GUICanvas(const float x,const float y,const float width,const float height):boundingBox(x,y,x+width,y+height),transform(boundingBox),guiSystem(nullptr) {
+	updateModelMatrix();
+}
+GUICanvas::GUICanvas(const float x,const float y,const float width,const float height,GUISystem* guiSystem_):boundingBox(x,y,x+width,y+height),transform(boundingBox),guiSystem(guiSystem_) {
 	updateModelMatrix();
 }
 
@@ -19,8 +25,8 @@ void GUICanvas::AddListener(EventListener*listener) {
 	listeners.push_back(listener);
 }
 
-bool GUICanvas::CheckClick(const double x,const double y) const {
-	return boundingBox.ContainsPoint(x,y);
+bool GUICanvas::CheckClick(const float x,const float y) const {
+	return boundingBox.ContainsPoint(x,y); // && clickDetectionTransform.ContainsPoint(x,y)
 }
 
 void GUICanvas::SetSnap(const Side side,const SideSnap::SnapType sideSnapType,const SideSnap::SnapState sideSnapState) {
@@ -87,6 +93,251 @@ bool GUICanvas::IsDirty() const {
 	return dirty;
 }
 
+//void GUICanvas::updateSizesRecursive(const Side side) {
+//	//TODO: add check if snaps are identical or cyclic
+//	 const SideSnap sideSnap = sideSnaps[sideToIndex(side)];
+//	if(sideSnap.state == SideSnap::NO_SNAP) {
+//		return;
+//	}
+//	if(sideSnap.state == SideSnap::WINDOW) {
+//		const glm::ivec2 screenSize = guiSystem->GetScreenSize();
+//		switch(side) {
+//		case Side::LEFT:
+//			if(sideSnap.type == SideSnap::SCALE || sideSnap.type == SideSnap::SCALE_STRAIGHT) {
+//				boundingBox.width = -boundingBox.x+boundingBox.width;
+//			}
+//			boundingBox.x = 0;
+//			break;
+//		case Side::RIGHT:
+//			if(sideSnap.type == SideSnap::DRAG || sideSnap.type == SideSnap::DRAG_STRAIGHT) {
+//				boundingBox.x = screenSize.x-boundingBox.width;
+//			}else {
+//				boundingBox.width = screenSize.x-boundingBox.x;
+//			}
+//			break;
+//		case Side::TOP:
+//			if(sideSnap.type == SideSnap::SCALE || sideSnap.type == SideSnap::SCALE_STRAIGHT) {
+//				boundingBox.height = -boundingBox.y+boundingBox.height;
+//			}
+//			boundingBox.y = 0;
+//			break;
+//		case Side::BOTTOM:
+//			if(sideSnap.type == SideSnap::DRAG || sideSnap.type == SideSnap::DRAG_STRAIGHT) {
+//				boundingBox.y = screenSize.y-boundingBox.height;
+//			}else {
+//				boundingBox.height = screenSize.y-boundingBox.y;
+//			}
+//			break;
+//		default:
+//			break;
+//		}
+//	} 
+//	if(sideSnap.state == SideSnap::CANVAS){
+//		GUICanvas* snapCanvas = sideSnap.canvas;
+//		snapCanvas->updateSizesRecursive(side);
+//		const double oldX = boundingBox.x;
+//		const double oldY = boundingBox.y;
+//		switch(side) {
+//		case Side::LEFT:
+//			switch (sideSnap.type) {
+//			case SideSnap::DRAG:
+//				boundingBox.x = snapCanvas->boundingBox.GetX2();
+//				break;
+//			case SideSnap::DRAG_STRAIGHT:
+//				boundingBox.x = snapCanvas->boundingBox.x;
+//				break;
+//			case SideSnap::SCALE:
+//				boundingBox.x = snapCanvas->boundingBox.GetX2();
+//				boundingBox.width = boundingBox.width+oldX-boundingBox.x;
+//				break;
+//			case SideSnap::SCALE_STRAIGHT:
+//				boundingBox.width = boundingBox.GetX2()-snapCanvas->boundingBox.x;
+//				boundingBox.x = snapCanvas->boundingBox.x;
+//				break;
+//			}
+//			break;
+//		case Side::RIGHT:
+//			switch(sideSnap.type) {
+//			case SideSnap::DRAG:
+//				boundingBox.x = oldX+snapCanvas->boundingBox.x-boundingBox.GetX2();
+//				break;
+//			case SideSnap::DRAG_STRAIGHT:
+//				boundingBox.x = snapCanvas->boundingBox.GetX2()-boundingBox.width;
+//				break;
+//			case SideSnap::SCALE:
+//				boundingBox.width = snapCanvas->boundingBox.x-boundingBox.x;
+//				break;
+//			case SideSnap::SCALE_STRAIGHT:
+//				boundingBox.width = snapCanvas->boundingBox.GetX2()-boundingBox.x;
+//				break;
+//			}
+//			break;
+//		case Side::TOP:
+//			switch(sideSnap.type) {
+//			case SideSnap::DRAG:
+//				boundingBox.y = snapCanvas->boundingBox.GetY2();
+//				break;
+//			case SideSnap::DRAG_STRAIGHT:
+//				boundingBox.y = snapCanvas->boundingBox.y;
+//				break;
+//			case SideSnap::SCALE:
+//				boundingBox.y = snapCanvas->boundingBox.GetY2();
+//				boundingBox.height = boundingBox.height+oldY-boundingBox.y;
+//				break;
+//			case SideSnap::SCALE_STRAIGHT:
+//				boundingBox.height = boundingBox.GetY2()-snapCanvas->boundingBox.y;
+//				boundingBox.y = snapCanvas->boundingBox.y;
+//				break;
+//			}
+//			break;
+//		case Side::BOTTOM:
+//			switch(sideSnap.type) {
+//			case SideSnap::DRAG:
+//				boundingBox.y = oldY+snapCanvas->boundingBox.y-boundingBox.GetY2();
+//				break;
+//			case SideSnap::DRAG_STRAIGHT:
+//				boundingBox.y = snapCanvas->boundingBox.GetY2()-boundingBox.height;
+//				break;
+//			case SideSnap::SCALE:
+//				boundingBox.height = snapCanvas->boundingBox.y-boundingBox.y;
+//				break;
+//			case SideSnap::SCALE_STRAIGHT:
+//				boundingBox.height = snapCanvas->boundingBox.GetY2()-boundingBox.y;
+//				break;
+//			}
+//			break;
+//		default:
+//			break;
+//		}
+//	}
+//}
+//void GUICanvas::updateSizesRecursive(const Side side) {
+//	//TODO: add check if snaps are identical or cyclic
+//	const SideSnap sideSnap = sideSnaps[sideToIndex(side)];
+//	if(sideSnap.state == SideSnap::NO_SNAP) {
+//		return;
+//	}
+//	if(sideSnap.state == SideSnap::WINDOW) {
+//		const glm::vec2 screenSize = guiSystem->GetScreenSize();
+//		switch(side) {
+//		case Side::LEFT:
+//			if(sideSnap.type == SideSnap::SCALE || sideSnap.type == SideSnap::SCALE_STRAIGHT) {
+//				boundingBox.min.x = 0;
+//			}else {
+//				boundingBox.min.x = boundingBox.getWidth();
+//				boundingBox.max.x = 0;
+//			}
+//			break;
+//		case Side::RIGHT:
+//			if(sideSnap.type == SideSnap::SCALE || sideSnap.type == SideSnap::SCALE_STRAIGHT) {
+//				boundingBox.max.x = screenSize.x;
+//			} else {
+//				boundingBox.min.x = screenSize.x-boundingBox.getWidth();
+//				boundingBox.max.x = screenSize.x;
+//			}
+//			break;
+//		case Side::TOP:
+//			if(sideSnap.type == SideSnap::SCALE || sideSnap.type == SideSnap::SCALE_STRAIGHT) {
+//				boundingBox.min.y = 0;
+//			} else {
+//				boundingBox.max.y = boundingBox.getHeight();
+//				boundingBox.min.y = 0;
+//			}
+//			break;
+//		case Side::BOTTOM:
+//			if(sideSnap.type == SideSnap::SCALE || sideSnap.type == SideSnap::SCALE_STRAIGHT) {
+//				boundingBox.max.y = screenSize.y;
+//			} else {
+//				boundingBox.min.y = screenSize.y-boundingBox.getHeight();
+//				boundingBox.max.y = screenSize.y;
+//			}
+//			break;
+//		default:
+//			break;
+//		}
+//	}
+//	if(sideSnap.state == SideSnap::CANVAS){
+//		sideSnap.canvas->updateSizesRecursive(side);
+//		const BoundingBox& otherBB = sideSnap.canvas->boundingBox;
+//		const glm::vec2 oldSize = boundingBox.getSize();
+//		switch(side) {
+//		case Side::LEFT:
+//			switch(sideSnap.type) {
+//			case SideSnap::DRAG:
+//				boundingBox.min.x = otherBB.max.x;
+//				boundingBox.max.x = boundingBox.min.x + oldSize.x;
+//				break;
+//			case SideSnap::DRAG_STRAIGHT:
+//				boundingBox.min.x = otherBB.min.x;
+//				boundingBox.max.x = boundingBox.min.x + oldSize.x;
+//				break;
+//			case SideSnap::SCALE:
+//				boundingBox.min.x = otherBB.max.x;
+//				break;
+//			case SideSnap::SCALE_STRAIGHT:
+//				boundingBox.min.x = otherBB.min.x;
+//				break;
+//			}
+//			break;
+//		case Side::RIGHT:
+//			switch(sideSnap.type) {
+//			case SideSnap::DRAG:
+//				boundingBox.max.x = otherBB.min.x;
+//				boundingBox.min.x = boundingBox.max.x - oldSize.x;
+//				break;
+//			case SideSnap::DRAG_STRAIGHT:
+//				boundingBox.max.x = otherBB.max.x;
+//				boundingBox.min.x = boundingBox.max.x - oldSize.x;
+//				break;
+//			case SideSnap::SCALE:
+//				boundingBox.max.x = otherBB.min.x;
+//				break;
+//			case SideSnap::SCALE_STRAIGHT:
+//				boundingBox.max.x = otherBB.max.x;
+//				break;
+//			}
+//			break;
+//		case Side::TOP:
+//			switch(sideSnap.type) {
+//			case SideSnap::DRAG:
+//				boundingBox.min.y = otherBB.max.y;
+//				boundingBox.max.y = boundingBox.min.y + oldSize.y;
+//				break;
+//			case SideSnap::DRAG_STRAIGHT:
+//				boundingBox.min.y = otherBB.min.y;
+//				boundingBox.max.y = boundingBox.min.y + oldSize.y;
+//				break;
+//			case SideSnap::SCALE:
+//				boundingBox.min.y = otherBB.max.y;
+//				break;
+//			case SideSnap::SCALE_STRAIGHT:
+//				boundingBox.min.y = otherBB.min.y;
+//				break;
+//			}
+//			break;
+//		case Side::BOTTOM:
+//			switch(sideSnap.type) {
+//			case SideSnap::DRAG:
+//				boundingBox.max.y = otherBB.min.y;
+//				boundingBox.min.y = boundingBox.max.y - oldSize.y;
+//				break;
+//			case SideSnap::DRAG_STRAIGHT:
+//				boundingBox.max.y = otherBB.max.y;
+//				boundingBox.min.y = boundingBox.max.y - oldSize.y;
+//				break;
+//			case SideSnap::SCALE:
+//				boundingBox.max.y = otherBB.min.y;
+//				break;
+//			case SideSnap::SCALE_STRAIGHT:
+//				boundingBox.max.y = otherBB.max.y;
+//				break;
+//			}
+//			break;
+//		default:
+//			break;
+//		}
+//	}
+//}
 void GUICanvas::updateSizesRecursive(const Side side) {
 	//TODO: add check if snaps are identical or cyclic
 	 const SideSnap sideSnap = sideSnaps[sideToIndex(side)];
@@ -94,32 +345,32 @@ void GUICanvas::updateSizesRecursive(const Side side) {
 		return;
 	}
 	if(sideSnap.state == SideSnap::WINDOW) {
-		const glm::ivec2 screenSize = guiSystem->GetScreenSize();
+		const glm::vec2 screenSize = guiSystem->GetScreenSize();
 		switch(side) {
 		case Side::LEFT:
 			if(sideSnap.type == SideSnap::SCALE || sideSnap.type == SideSnap::SCALE_STRAIGHT) {
-				boundingBox.width = -boundingBox.x+boundingBox.width;
+				transform.size.x = -transform.position.x+transform.size.x;
 			}
-			boundingBox.x = 0;
+			transform.position.x = 0;
 			break;
 		case Side::RIGHT:
 			if(sideSnap.type == SideSnap::DRAG || sideSnap.type == SideSnap::DRAG_STRAIGHT) {
-				boundingBox.x = screenSize.x-boundingBox.width;
+				transform.position.x = screenSize.x-transform.size.x;
 			}else {
-				boundingBox.width = screenSize.x-boundingBox.x;
+				transform.size.x = screenSize.x-transform.position.x;
 			}
 			break;
 		case Side::TOP:
 			if(sideSnap.type == SideSnap::SCALE || sideSnap.type == SideSnap::SCALE_STRAIGHT) {
-				boundingBox.height = -boundingBox.y+boundingBox.height;
+				transform.size.y = -transform.position.y+transform.size.y;
 			}
-			boundingBox.y = 0;
+			transform.position.y = 0;
 			break;
 		case Side::BOTTOM:
 			if(sideSnap.type == SideSnap::DRAG || sideSnap.type == SideSnap::DRAG_STRAIGHT) {
-				boundingBox.y = screenSize.y-boundingBox.height;
+				transform.position.y = screenSize.y-transform.size.y;
 			}else {
-				boundingBox.height = screenSize.y-boundingBox.y;
+				transform.size.y = screenSize.y-transform.position.y;
 			}
 			break;
 		default:
@@ -127,76 +378,75 @@ void GUICanvas::updateSizesRecursive(const Side side) {
 		}
 	} 
 	if(sideSnap.state == SideSnap::CANVAS){
-		GUICanvas* snapCanvas = sideSnap.canvas;
-		snapCanvas->updateSizesRecursive(side);
-		const double oldX = boundingBox.x;
-		const double oldY = boundingBox.y;
+		sideSnap.canvas->updateSizesRecursive(side);
+		GUITransform& otherTransform = sideSnap.canvas->transform;
+		const glm::vec2 oldPosition = transform.position;
 		switch(side) {
 		case Side::LEFT:
 			switch (sideSnap.type) {
 			case SideSnap::DRAG:
-				boundingBox.x = snapCanvas->boundingBox.GetX2();
+				transform.position.x = otherTransform.GetX2();
 				break;
 			case SideSnap::DRAG_STRAIGHT:
-				boundingBox.x = snapCanvas->boundingBox.x;
+				transform.position.x = otherTransform.position.x;
 				break;
 			case SideSnap::SCALE:
-				boundingBox.x = snapCanvas->boundingBox.GetX2();
-				boundingBox.width = boundingBox.width+oldX-boundingBox.x;
+				transform.position.x = otherTransform.GetX2();
+				transform.size.x = transform.size.x+oldPosition.x-transform.position.x;
 				break;
 			case SideSnap::SCALE_STRAIGHT:
-				boundingBox.width = boundingBox.GetX2()-snapCanvas->boundingBox.x;
-				boundingBox.x = snapCanvas->boundingBox.x;
+				transform.size.x = transform.GetX2()-otherTransform.position.x;
+				transform.position.x = otherTransform.position.x;
 				break;
 			}
 			break;
 		case Side::RIGHT:
 			switch(sideSnap.type) {
 			case SideSnap::DRAG:
-				boundingBox.x = oldX+snapCanvas->boundingBox.x-boundingBox.GetX2();
+				transform.position.x = transform.position.x+otherTransform.position.x-transform.GetX2();
 				break;
 			case SideSnap::DRAG_STRAIGHT:
-				boundingBox.x = snapCanvas->boundingBox.GetX2()-boundingBox.width;
+				transform.position.x = otherTransform.GetX2()-transform.size.x;
 				break;
 			case SideSnap::SCALE:
-				boundingBox.width = snapCanvas->boundingBox.x-boundingBox.x;
+				transform.size.x = otherTransform.position.x-transform.position.x;
 				break;
 			case SideSnap::SCALE_STRAIGHT:
-				boundingBox.width = snapCanvas->boundingBox.GetX2()-boundingBox.x;
+				transform.size.x = otherTransform.GetX2()-transform.position.x;
 				break;
 			}
 			break;
 		case Side::TOP:
 			switch(sideSnap.type) {
 			case SideSnap::DRAG:
-				boundingBox.y = snapCanvas->boundingBox.GetY2();
+				transform.position.y = otherTransform.GetY2();
 				break;
 			case SideSnap::DRAG_STRAIGHT:
-				boundingBox.y = snapCanvas->boundingBox.y;
+				transform.position.y = otherTransform.position.y;
 				break;
 			case SideSnap::SCALE:
-				boundingBox.y = snapCanvas->boundingBox.GetY2();
-				boundingBox.height = boundingBox.height+oldY-boundingBox.y;
+				transform.position.y = otherTransform.GetY2();
+				transform.size.y = transform.size.y+oldPosition.y-transform.position.y;
 				break;
 			case SideSnap::SCALE_STRAIGHT:
-				boundingBox.height = boundingBox.GetY2()-snapCanvas->boundingBox.y;
-				boundingBox.y = snapCanvas->boundingBox.y;
+				transform.size.y = transform.GetY2()-otherTransform.position.y;
+				transform.position.y = otherTransform.position.y;
 				break;
 			}
 			break;
 		case Side::BOTTOM:
 			switch(sideSnap.type) {
 			case SideSnap::DRAG:
-				boundingBox.y = oldY+snapCanvas->boundingBox.y-boundingBox.GetY2();
+				transform.position.y = transform.position.y+otherTransform.position.y-transform.GetY2();
 				break;
 			case SideSnap::DRAG_STRAIGHT:
-				boundingBox.y = snapCanvas->boundingBox.GetY2()-boundingBox.height;
+				transform.position.y = otherTransform.GetY2()-transform.size.y;
 				break;
 			case SideSnap::SCALE:
-				boundingBox.height = snapCanvas->boundingBox.y-boundingBox.y;
+				transform.size.y = otherTransform.position.y-transform.position.y;
 				break;
 			case SideSnap::SCALE_STRAIGHT:
-				boundingBox.height = snapCanvas->boundingBox.GetY2()-boundingBox.y;
+				transform.size.y = otherTransform.GetY2()-transform.position.y;
 				break;
 			}
 			break;
@@ -209,7 +459,8 @@ void GUICanvas::updateSizesRecursive() {
 	if(!dirty) {
 		return;
 	}
-	
+
+	std::deque<Side> sidesUpdateOrdered;
 	for(int i=0;i<4;i++) {
 		if(sideSnaps[i].type == SideSnap::DRAG || sideSnaps[i].type == SideSnap::DRAG_STRAIGHT) {
 			sidesUpdateOrdered.push_front(indexToSide(i));
@@ -220,12 +471,12 @@ void GUICanvas::updateSizesRecursive() {
 	for(const auto& side: sidesUpdateOrdered) {
 		updateSizesRecursive(side);
 	}
-	sidesUpdateOrdered.clear();
 }
 
 
 void GUICanvas::updateWhenDirty() {
 	updateSizesRecursive();
+	UpdateBoundingBox();
 	updateModelMatrix();
 }
 
@@ -244,13 +495,31 @@ void GUICanvas::SetTexture(Texture2D* texture_) {
 	texture = texture_;
 }
 
+glm::mat4 GUICanvas::GetDrawModelMatrix() const {
+	return model*viewTransform;
+}
+
 void GUICanvas::Undirty() {
 	dirty = false;
 }
 
+//void GUICanvas::updateModelMatrix() {
+//	model = glm::mat4(1.0f);
+//	model = glm::translate(model,glm::vec3(boundingBox.x,boundingBox.y+boundingBox.height,0.0f));
+//	model = glm::scale(model,glm::vec3(boundingBox.width,-boundingBox.height,1.0f));
+//}
 void GUICanvas::updateModelMatrix() {
+	//model = glm::mat4(1.0f);
+	//model = glm::translate(model,glm::vec3(boundingBox.min.x,boundingBox.max.y,0.0f));
+	//model = glm::scale(model,glm::vec3(boundingBox.getWidth(),-boundingBox.getHeight(),1.0f));
+	//model = transform.ToMat4();
 	model = glm::mat4(1.0f);
-	model = glm::translate(model,glm::vec3(boundingBox.x,boundingBox.y+boundingBox.height,0.0f));
-	model = glm::scale(model,glm::vec3(boundingBox.width,-boundingBox.height,1.0f));
+	model = glm::translate(model,glm::vec3(transform.position.x,transform.position.y+transform.size.y,0.0f));
+	model = glm::scale(model,glm::vec3(transform.size.x,-transform.size.y,1.0f));
+	model *= glm::mat4_cast(transform.rotation);
 }
 
+void GUICanvas::UpdateBoundingBox() {
+	boundingBox = transform.CalculateEnclosingBoundingBox();
+	MarkDirty();
+}

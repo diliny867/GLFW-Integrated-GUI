@@ -90,7 +90,7 @@ int main() {
     mainGUI.Init(window);
     mainGUI.SetClickDetectionUnderLayer(false);
 
-    GUICanvas* exitButton = new GUICanvas(40,400,50,50,&mainGUI);
+    GUICanvas* exitButton = new GUICanvas(0,0,50,50,&mainGUI);
     exitButton->AddListener(new EventListener(
         EL_Check_SingleClick_Func,
         [](EventListener* el)->void {
@@ -104,35 +104,51 @@ int main() {
     exitButton->SetSnap(GUICanvas::TOP,GUICanvas::SideSnap::DRAG,GUICanvas::SideSnap::WINDOW);
     exitButton->SetTexture(earthBurnTexture);
     exitButton->layer = 1;
+    exitButton->AddListener(new EventListener(
+        EL_Check_OnHover_Func,
+        [](const EventListener* el) {
+            GUICanvas* element = el->guiElement;
+			constexpr float sizeChange = 1.1f;
+			constexpr float sizeOffset = (1.0f-sizeChange)/2.0f;
+            element->viewTransform = glm::translate(glm::mat4(1.0f),glm::vec3(sizeOffset,sizeOffset,0.0f));
+            element->viewTransform = glm::scale(element->viewTransform,glm::vec3(sizeChange,sizeChange,1.0f));
+            element->MarkDirty();
+        },
+        [](const EventListener* el) {
+            GUICanvas* element = el->guiElement;
+            if(element->viewTransform != glm::mat4(1.0f)){
+                element->viewTransform = glm::mat4(1.0f);
+                element->MarkDirty();
+            }
+        },
+        []() {
+            std::cout<<"HOVER\n";
+        }
+    ));
     mainGUI.AddCanvasElement(exitButton);
     mainGUI.EnableLayerChecks(1);
 
     GUICanvas* gb = new GUICanvas(0,0,400,400,&mainGUI);
     gb->AddListener(new EventListener(
         EL_Check_SingleClick_Func,
-        [](EventListener* el)->void {
-            el->guiElement->boundingBox.width *= 0.95;
-			el->guiElement->boundingBox.height += 5;
+        [](const EventListener* el)->void {
+            el->guiElement->transform.size.x *= 0.95f;
+			el->guiElement->transform.size.y += 5;
 			el->guiElement->MarkDirty();
         },
         []() {
             std::cout<<"CLICK\n";
         }
         ));
-    gb->texture = saulTexture;
+    gb->SetTexture(saulTexture);
     gb->UpdateView();
     mainGUI.AddCanvasElement(gb);
 
     GUICanvas* gb2 = new GUICanvas(300,100,300,60,&mainGUI);
     gb2->AddListener(new EventListener(
         EL_Check_HoldUntilRelease_Func,
-        [](EventListener* el)->void {
+        [](const EventListener* el)->void {
             const InputManager::Mouse& mouse = InputManager::mouse;
-            if(mouse.deltaX!=0||mouse.deltaY!=0){
-                el->guiElement->boundingBox.x += mouse.deltaX;
-                el->guiElement->boundingBox.y += mouse.deltaY;
-                el->guiElement->MarkDirty();
-            }
         },
         []() {
             std::cout<<"LEFT HOLD\n";
@@ -140,19 +156,17 @@ int main() {
         ));
     gb2->AddListener(new EventListener(
         EL_Check_HoldUntilReleaseRMB_Func,
-        [](EventListener* el)->void {
-			//const InputManager::Mouse& mouse = InputManager::mouse;
-
+        [](const EventListener* el)->void {
+			const InputManager::Mouse& mouse = InputManager::mouse;
         },
         []() {
             std::cout<<"RIGHT HOLD\n";
         }
 		));
-    gb2->texture = sillyTexture;
+    gb2->SetTexture(sillyTexture);
     gb2->SetSnap(GUICanvas::LEFT,GUICanvas::SideSnap::SCALE,GUICanvas::SideSnap::CANVAS,gb);
     gb2->SetSnap(GUICanvas::RIGHT,GUICanvas::SideSnap::SCALE,GUICanvas::SideSnap::WINDOW);
-    //gb2->SetSnap(GUICanvas::TOP,GUICanvas::SideSnap::SCALE_STRAIGHT,GUICanvas::SideSnap::CANVAS,gb);
-    //gb2->SetSnap(GUICanvas::BOTTOM,GUICanvas::SideSnap::DRAG_STRAIGHT,GUICanvas::SideSnap::CANVAS,gb);
+    gb2->MarkDirty();
     gb2->UpdateView();
     mainGUI.AddCanvasElement(gb2);
 
@@ -162,6 +176,8 @@ int main() {
     while (!glfwWindowShouldClose(window)) {
         Time::Update();
         InputManager::PollEvents();
+
+        //printFPS();
 
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT/* | GL_STENCIL_BUFFER_BIT*/);

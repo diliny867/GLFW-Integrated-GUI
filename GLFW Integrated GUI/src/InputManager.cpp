@@ -82,15 +82,5 @@ void InputManager::PollEvents() {
 	mouse.scrollOffsetX = 0;
 	mouse.scrollOffsetY = 0;
 	glfwPollEvents();
-	if(glfwGetMouseButton(window,GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
-		mouse.leftPress = true;
-	}else {
-		mouse.leftPress = false;
-	}
-	if(glfwGetMouseButton(window,GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) {
-		mouse.rightPress = true;
-	} else {
-		mouse.rightPress = false;
-	}
 
 }

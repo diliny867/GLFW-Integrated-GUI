@@ -13,6 +13,7 @@ protected:
 	//OnActivateFuncType* OnActivate_;
 	std::function<bool(EventListener*)> Check_;
 	std::function<void(EventListener*)> OnActivate_;
+	std::function<void(EventListener*)> OnNotActive_;
 	std::function<void()> callback;
 public:
 	GUICanvas* guiElement;
@@ -20,11 +21,14 @@ public:
 	//EventListener(GUICanvas* element_,CheckFuncType* check,OnActivateFuncType* onActivate,const std::function<void()>& callback_);
 	EventListener(GUICanvas* element_,const std::function<bool(EventListener*)>& check,const std::function<void(EventListener*)>& onActivate);
 	EventListener(GUICanvas* element_,const std::function<bool(EventListener*)>& check,const std::function<void(EventListener*)>& onActivate,const std::function<void()>& callback_);
+	EventListener(GUICanvas* element_,const std::function<bool(EventListener*)>& check,const std::function<void(EventListener*)>& onActivate,const std::function<void(EventListener*)>& onNotActive,const std::function<void()>& callback_);
 	EventListener(const std::function<bool(EventListener*)>& check,const std::function<void(EventListener*)>& onActivate);
 	EventListener(const std::function<bool(EventListener*)>& check,const std::function<void(EventListener*)>& onActivate,const std::function<void()>& callback_);
+	EventListener(const std::function<bool(EventListener*)>& check,const std::function<void(EventListener*)>& onActivate,const std::function<void(EventListener*)>& onNotActive,const std::function<void()>& callback_);
 
 	bool Check(); //If event listener check worked
 	void OnActivate(); //To change internal state of object, event listener is bound to
+	void OnNotActive();
 };
 
 
@@ -110,4 +114,14 @@ public:
 		captured = false;													\
 	}																		\
 	return false;															\
+}
+#define EL_Check_OnHover_Func												\
+[](const EventListener* el)->bool {											\
+	const InputManager::Mouse& mouse = InputManager::mouse;					\
+	return el->guiElement->CheckClick(mouse.posX,mouse.posY);				\
+}
+#define EL_Check_NotHover_Func												\
+[](const EventListener* el)->bool {											\
+	const InputManager::Mouse& mouse = InputManager::mouse;					\
+	return !el->guiElement->CheckClick(mouse.posX,mouse.posY);				\
 }

@@ -59,6 +59,7 @@
     <ClInclude Include="src\GUI\GUICanvas.h" />
     <ClInclude Include="src\GUI\GUICommon.h" />
     <ClInclude Include="src\GUI\GUISystem.h" />
+    <ClInclude Include="src\GUI\GUITransform.h" />
     <ClInclude Include="src\InputManager.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

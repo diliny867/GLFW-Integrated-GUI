@@ -1,5 +1,7 @@
 #include "Texture2D.h"
 
+Texture2D::Texture2D(): type(Diffuse) {}
+
 Texture2D::Texture2D(int width, int height){
     this->type = TextureType::Diffuse;
     this->path = "";

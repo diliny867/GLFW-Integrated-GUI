@@ -43,13 +43,13 @@ protected:
 	GLuint quadEBO;
 	GLuint screenQuadVBO;
 	GLuint screenQuadVAO;
+	GLuint canvasVBO;
+	GLuint canvasVAO;
+
 	GLuint mainFramebuffer;
 	GLuint mainRenderbuffer;
 	Texture2D* mainFramebufferTexture;
 	Shader* mainFramebuffeShader;
-
-	GLuint canvasVBO;
-	GLuint canvasVAO;
 	Shader* canvasShader;
 
 	glm::mat4 projection = glm::mat4(1.0f);

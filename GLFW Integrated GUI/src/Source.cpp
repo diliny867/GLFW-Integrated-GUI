@@ -42,7 +42,7 @@ int main() {
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
-    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "OpenGL application", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH,SCR_HEIGHT, "OpenGL application", NULL, NULL);
     if (window == NULL) {
         std::cout << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
@@ -100,24 +100,21 @@ int main() {
             glfwSetWindowShouldClose(window,true);
         }
     ));
-    exitButton->SetSnap(GUICanvas::RIGHT,GUICanvas::SideSnap::DRAG,GUICanvas::SideSnap::WINDOW);
-    exitButton->SetSnap(GUICanvas::TOP,GUICanvas::SideSnap::DRAG,GUICanvas::SideSnap::WINDOW);
-    exitButton->SetTexture(earthBurnTexture);
-    exitButton->layer = 1;
     exitButton->AddListener(new EventListener(
         EL_Check_OnHover_Func,
         [](const EventListener* el) {
             GUICanvas* element = el->guiElement;
+
 			constexpr float sizeChange = 1.1f;
 			constexpr float sizeOffset = (1.0f-sizeChange)/2.0f;
-            element->viewTransform = glm::translate(glm::mat4(1.0f),glm::vec3(sizeOffset,sizeOffset,0.0f));
-            element->viewTransform = glm::scale(element->viewTransform,glm::vec3(sizeChange,sizeChange,1.0f));
+            element->viewTransformMat4 = glm::translate(glm::mat4(1.0f),glm::vec3(sizeOffset,sizeOffset,0.0f));
+            element->viewTransformMat4 = glm::scale(element->viewTransformMat4,glm::vec3(sizeChange,sizeChange,1.0f));
             element->MarkDirty();
         },
         [](const EventListener* el) {
             GUICanvas* element = el->guiElement;
-            if(element->viewTransform != glm::mat4(1.0f)){
-                element->viewTransform = glm::mat4(1.0f);
+            if(element->viewTransformMat4 != glm::mat4(1.0f)){
+                element->viewTransformMat4 = glm::mat4(1.0f);
                 element->MarkDirty();
             }
         },
@@ -125,16 +122,21 @@ int main() {
             std::cout<<"HOVER\n";
         }
     ));
-    mainGUI.AddCanvasElement(exitButton);
+    exitButton->SetSnap(GUICanvas::RIGHT,GUICanvas::SideSnap::DRAG,GUICanvas::SideSnap::WINDOW);
+    exitButton->SetSnap(GUICanvas::TOP,GUICanvas::SideSnap::DRAG,GUICanvas::SideSnap::WINDOW);
+    exitButton->SetTexture(earthBurnTexture);
+    exitButton->layer = 1;
     mainGUI.EnableLayerChecks(1);
+    mainGUI.AddCanvasElement(exitButton);
 
     GUICanvas* gb = new GUICanvas(0,0,400,400,&mainGUI);
     gb->AddListener(new EventListener(
         EL_Check_SingleClick_Func,
         [](const EventListener* el)->void {
-            el->guiElement->transform.size.x *= 0.95f;
-			el->guiElement->transform.size.y += 5;
-			el->guiElement->MarkDirty();
+            GUICanvas* element = el->guiElement;
+            element->transform.size.x *= 0.95f;
+			element->transform.size.y += 5;
+			element->MarkDirty();
         },
         []() {
             std::cout<<"CLICK\n";
@@ -146,7 +148,7 @@ int main() {
 
     GUICanvas* gb2 = new GUICanvas(300,100,300,60,&mainGUI);
     gb2->AddListener(new EventListener(
-        EL_Check_HoldUntilRelease_Func,
+        EL_Check_StartHereHoldUntilRelease_Func,
         [](const EventListener* el)->void {
             const InputManager::Mouse& mouse = InputManager::mouse;
         },
@@ -155,7 +157,7 @@ int main() {
         }
         ));
     gb2->AddListener(new EventListener(
-        EL_Check_HoldUntilReleaseRMB_Func,
+        EL_Check_StartHereHoldUntilReleaseRMB_Func,
         [](const EventListener* el)->void {
 			const InputManager::Mouse& mouse = InputManager::mouse;
         },

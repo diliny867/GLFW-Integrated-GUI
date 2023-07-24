@@ -1,7 +1,11 @@
 #include "GUISystem.h"
 
 
-GUISystem::GUISystem():state(ACTIVE) {}
+GUISystem::GUISystem():state(ACTIVE), window(nullptr),
+	quadEBO(0), screenQuadVBO(0), screenQuadVAO(0),canvasVBO(0),canvasVAO(0),
+	mainFramebuffer(0),mainRenderbuffer(0),
+	mainFramebufferTexture(nullptr),mainFramebuffeShader(nullptr),canvasShader(nullptr)
+{}
 
 void GUISystem::Deactivate() {
 	state = DISABLED;
@@ -129,16 +133,22 @@ void GUISystem::checkActivateAllEventListeners() const {
 		}
 	}else {
 		std::vector<EventListener*> unactiveListeners;
-		EventListener* topListener = nullptr;
+		std::vector<EventListener*> topListeners;
 		GUILayer topLayer = INT_MIN;
+		bool newElement = true;
 		for(const auto& element: guiElements) {
 			if(!IsLayerChecksEnabled(element->layer)) {
 				continue;
 			}
+			newElement = true;
 			for(const auto& listener: element->listeners) {
 				if(listener->Check()) {
-					if(element->layer>topLayer) {
-						topListener = listener;
+					if(element->layer>=topLayer) {
+						if(newElement) {
+							topListeners.clear();
+							newElement = false;
+						}
+						topListeners.push_back(listener);
 						topLayer = element->layer;
 					}
 				}else {
@@ -146,8 +156,8 @@ void GUISystem::checkActivateAllEventListeners() const {
 				}
 			}
 		}
-		if(topListener!=nullptr) {
-			topListener->OnActivate();
+		for(const auto& listener: topListeners) {
+			listener->OnActivate();
 		}
 		for(const auto& listener: unactiveListeners) {
 			listener->OnNotActive();

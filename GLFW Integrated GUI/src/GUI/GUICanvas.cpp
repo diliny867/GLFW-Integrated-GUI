@@ -496,7 +496,7 @@ void GUICanvas::SetTexture(Texture2D* texture_) {
 }
 
 glm::mat4 GUICanvas::GetDrawModelMatrix() const {
-	return model*viewTransform;
+	return model*viewTransformMat4;
 }
 
 void GUICanvas::Undirty() {

@@ -66,7 +66,7 @@ public:
 
 	glm::mat4 model = glm::mat4(1.0f);
 
-	glm::mat4 viewTransform = glm::mat4(1.0f);
+	glm::mat4 viewTransformMat4 = glm::mat4(1.0f);
 
 	GUITransform transform;
 

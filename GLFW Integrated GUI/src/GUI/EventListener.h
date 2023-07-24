@@ -14,17 +14,17 @@ protected:
 	std::function<bool(EventListener*)> Check_;
 	std::function<void(EventListener*)> OnActivate_;
 	std::function<void(EventListener*)> OnNotActive_;
-	std::function<void()> callback;
+	std::function<void()> Callback;
 public:
 	GUICanvas* guiElement;
 	//EventListener(GUICanvas* element_,CheckFuncType* check,OnActivateFuncType* onActivate);
 	//EventListener(GUICanvas* element_,CheckFuncType* check,OnActivateFuncType* onActivate,const std::function<void()>& callback_);
 	EventListener(GUICanvas* element_,const std::function<bool(EventListener*)>& check,const std::function<void(EventListener*)>& onActivate);
-	EventListener(GUICanvas* element_,const std::function<bool(EventListener*)>& check,const std::function<void(EventListener*)>& onActivate,const std::function<void()>& callback_);
-	EventListener(GUICanvas* element_,const std::function<bool(EventListener*)>& check,const std::function<void(EventListener*)>& onActivate,const std::function<void(EventListener*)>& onNotActive,const std::function<void()>& callback_);
+	EventListener(GUICanvas* element_,const std::function<bool(EventListener*)>& check,const std::function<void(EventListener*)>& onActivate,const std::function<void()>& callback);
+	EventListener(GUICanvas* element_,const std::function<bool(EventListener*)>& check,const std::function<void(EventListener*)>& onActivate,const std::function<void(EventListener*)>& onNotActive,const std::function<void()>& callback);
 	EventListener(const std::function<bool(EventListener*)>& check,const std::function<void(EventListener*)>& onActivate);
-	EventListener(const std::function<bool(EventListener*)>& check,const std::function<void(EventListener*)>& onActivate,const std::function<void()>& callback_);
-	EventListener(const std::function<bool(EventListener*)>& check,const std::function<void(EventListener*)>& onActivate,const std::function<void(EventListener*)>& onNotActive,const std::function<void()>& callback_);
+	EventListener(const std::function<bool(EventListener*)>& check,const std::function<void(EventListener*)>& onActivate,const std::function<void()>& callback);
+	EventListener(const std::function<bool(EventListener*)>& check,const std::function<void(EventListener*)>& onActivate,const std::function<void(EventListener*)>& onNotActive,const std::function<void()>& callback);
 
 	bool Check(); //If event listener check worked
 	void OnActivate(); //To change internal state of object, event listener is bound to
@@ -50,30 +50,6 @@ public:
 	}																		\
 	return false;															\
 }
-#define EL_Check_Hold_Func													\
-[](const EventListener* el)->bool {											\
-	const InputManager::Mouse& mouse = InputManager::mouse;					\
-	if(mouse.leftPress) {													\
-		if(el->guiElement->CheckClick(mouse.posX,mouse.posY)){				\
-			return true;													\
-		}																	\
-	}																		\
-	return false;															\
-}
-#define EL_Check_HoldUntilRelease_Func										\
-[](const EventListener* el)->bool {											\
-	const InputManager::Mouse& mouse = InputManager::mouse;					\
-	static bool captured = false;											\
-	if(mouse.leftPress) {													\
-		if(captured || el->guiElement->CheckClick(mouse.posX,mouse.posY)){	\
-			captured = true;												\
-			return true;													\
-		}																	\
-	}else {																	\
-		captured = false;													\
-	}																		\
-	return false;															\
-}
 #define EL_Check_SingleClickRMB_Func										\
 [](const EventListener* el)->bool {											\
 	const InputManager::Mouse& mouse = InputManager::mouse;					\
@@ -91,6 +67,17 @@ public:
 	}																		\
 	return false;															\
 }
+
+#define EL_Check_Hold_Func													\
+[](const EventListener* el)->bool {											\
+	const InputManager::Mouse& mouse = InputManager::mouse;					\
+	if(mouse.leftPress) {													\
+		if(el->guiElement->CheckClick(mouse.posX,mouse.posY)){				\
+			return true;													\
+		}																	\
+	}																		\
+	return false;															\
+}
 #define EL_Check_HoldRMB_Func												\
 [](const EventListener* el)->bool {											\
 	const InputManager::Mouse& mouse = InputManager::mouse;					\
@@ -98,6 +85,21 @@ public:
 		if(el->guiElement->CheckClick(mouse.posX,mouse.posY)){				\
 			return true;													\
 		}																	\
+	}																		\
+	return false;															\
+}
+
+#define EL_Check_HoldUntilRelease_Func										\
+[](const EventListener* el)->bool {											\
+	const InputManager::Mouse& mouse = InputManager::mouse;					\
+	static bool captured = false;											\
+	if(mouse.leftPress) {													\
+		if(captured || el->guiElement->CheckClick(mouse.posX,mouse.posY)){	\
+			captured = true;												\
+			return true;													\
+		}																	\
+	}else {																	\
+		captured = false;													\
 	}																		\
 	return false;															\
 }
@@ -115,6 +117,7 @@ public:
 	}																		\
 	return false;															\
 }
+
 #define EL_Check_OnHover_Func												\
 [](const EventListener* el)->bool {											\
 	const InputManager::Mouse& mouse = InputManager::mouse;					\
@@ -124,4 +127,86 @@ public:
 [](const EventListener* el)->bool {											\
 	const InputManager::Mouse& mouse = InputManager::mouse;					\
 	return !el->guiElement->CheckClick(mouse.posX,mouse.posY);				\
+}
+
+#define EL_Check_StartHereHold_Func											\
+[](const EventListener* el)->bool {											\
+	const InputManager::Mouse& mouse = InputManager::mouse;					\
+	static bool captured = false;											\
+	static bool clickHolding = false;										\
+	if(mouse.leftPress) {													\
+		if(!clickHolding &&													\
+			el->guiElement->CheckClick(mouse.posX,mouse.posY)){				\
+			captured = true;												\
+		}																	\
+		clickHolding = true;												\
+		if(captured){														\
+			return el->guiElement->CheckClick(mouse.posX,mouse.posY);		\
+		}																	\
+	}else {																	\
+		captured = false;													\
+		clickHolding = false;												\
+	}																		\
+	return false;															\
+}
+#define EL_Check_StartHereHoldRMB_Func										\
+[](const EventListener* el)->bool {											\
+	const InputManager::Mouse& mouse = InputManager::mouse;					\
+	static bool captured = false;											\
+	static bool clickHolding = false;										\
+	if(mouse.rightPress) {													\
+		if(!clickHolding &&													\
+			el->guiElement->CheckClick(mouse.posX,mouse.posY)){				\
+			captured = true;												\
+		}																	\
+		clickHolding = true;												\
+		if(captured){														\
+			return el->guiElement->CheckClick(mouse.posX,mouse.posY);		\
+		}																	\
+	}else {																	\
+		captured = false;													\
+		clickHolding = false;												\
+	}																		\
+	return false;															\
+}
+
+#define EL_Check_StartHereHoldUntilRelease_Func								\
+[](const EventListener* el)->bool {											\
+	const InputManager::Mouse& mouse = InputManager::mouse;					\
+	static bool captured = false;											\
+	static bool clickHolding = false;										\
+	if(mouse.leftPress) {													\
+		if(!clickHolding &&													\
+			el->guiElement->CheckClick(mouse.posX,mouse.posY)){				\
+			captured = true;												\
+		}																	\
+		clickHolding = true;												\
+		if(captured){														\
+			return true;													\
+		}																	\
+	}else {																	\
+		captured = false;													\
+		clickHolding = false;												\
+	}																		\
+	return false;															\
+}
+#define EL_Check_StartHereHoldUntilReleaseRMB_Func							\
+[](const EventListener* el)->bool {											\
+	const InputManager::Mouse& mouse = InputManager::mouse;					\
+	static bool captured = false;											\
+	static bool clickHolding = false;										\
+	if(mouse.rightPress) {													\
+		if(!clickHolding &&													\
+			el->guiElement->CheckClick(mouse.posX,mouse.posY)){				\
+			captured = true;												\
+		}																	\
+		clickHolding = true;												\
+		if(captured){														\
+			return true;													\
+		}																	\
+	}else {																	\
+		captured = false;													\
+		clickHolding = false;												\
+	}																		\
+	return false;															\
 }

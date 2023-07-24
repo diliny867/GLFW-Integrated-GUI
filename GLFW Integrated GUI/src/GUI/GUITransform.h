@@ -48,4 +48,11 @@ public:
 		
 		return BoundingBox(minMaxX.x,minMaxY.x,minMaxX.y,minMaxY.y);
 	}
+
+	friend bool operator==(const GUITransform& lhs, const GUITransform& rhs) {
+		return lhs.position==rhs.position&&lhs.size==rhs.size&&lhs.rotation==rhs.rotation;
+	}
+	friend bool operator!=(const GUITransform& lhs,const GUITransform& rhs) {
+		return !(lhs==rhs);
+	}
 };

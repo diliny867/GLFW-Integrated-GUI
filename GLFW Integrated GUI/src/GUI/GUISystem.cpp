@@ -99,8 +99,8 @@ void GUISystem::Init(GLFWwindow* window_) {
 	VAO::addAttrib(canvasVAO,1,2,GL_FLOAT,GL_FALSE,4*sizeof(float),(void*)(2*sizeof(float)));
 	VAO::unbind();
 
-	projection = glm::ortho(0.0f,(float)screenSize.x,(float)screenSize.y,0.0f,-1000.0f,1000.0f);
-	//projection = glm::ortho(0.0f,(float)screenSize.x,0.0f,(float)screenSize.y,-100.0f,100.0f);
+	//projection = glm::ortho(0.0f,(float)screenSize.x,(float)screenSize.y,0.0f,-1000.0f,1000.0f);
+	projection = glm::ortho(0.0f,(float)screenSize.x,0.0f,(float)screenSize.y,-100.0f,100.0f);
 	model = glm::mat4(1.0f);
 
 	mainFramebuffeShader = new Shader("resources/shaders/GUI/mainFBOShader_vs.glsl","resources/shaders/GUI/mainFBOShader_fs.glsl");
@@ -173,8 +173,8 @@ void GUISystem::updateViewAllGuiElements() const {
 
 void GUISystem::updateOnScreenSizeChange() {
 	FBO::bind(mainFramebuffer);
-	projection = glm::ortho(0.0f,(float)screenSize.x,(float)screenSize.y,0.0f,-1000.0f,1000.0f);
-	//projection = glm::ortho(0.0f,(float)screenSize.x,0.0f,(float)screenSize.y,-100.0f,100.0f);
+	//projection = glm::ortho(0.0f,(float)screenSize.x,(float)screenSize.y,0.0f,-1000.0f,1000.0f);
+	projection = glm::ortho(0.0f,(float)screenSize.x,0.0f,(float)screenSize.y,-100.0f,100.0f);
 	canvasShader->use();
 	canvasShader->setMat4("projection",projection);
 

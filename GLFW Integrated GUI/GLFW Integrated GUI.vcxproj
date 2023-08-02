@@ -19,7 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="C:\Users\Brivzemnieka\Desktop\Новая папка\Cpp\External Libraries\OpenGL\glad.c" />
+    <ClCompile Include="G:\Prog\Other\Cpp\External Libraries\OpenGL\glad.c" />
     <ClCompile Include="include\GL\Camera.cpp" />
     <ClCompile Include="include\GL\EBO.cpp" />
     <ClCompile Include="include\GL\FBO.cpp" />
@@ -115,13 +115,13 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>C:\Users\Brivzemnieka\Desktop\Новая папка\Cpp\External Libraries\OpenGL;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Users\Brivzemnieka\Desktop\Новая папка\Cpp\External Libraries\OpenGL;$(LibraryPath)</LibraryPath>
+    <IncludePath>G:\Prog\Other\Cpp\External Libraries\OpenGL;$(IncludePath)</IncludePath>
+    <LibraryPath>G:\Prog\Other\Cpp\External Libraries\OpenGL;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <PublicIncludeDirectories>$(PublicIncludeDirectories)</PublicIncludeDirectories>
-    <IncludePath>C:\Users\Brivzemnieka\Desktop\Новая папка\Cpp\External Libraries\OpenGL;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Users\Brivzemnieka\Desktop\Новая папка\Cpp\External Libraries\OpenGL;$(LibraryPath)</LibraryPath>
+    <IncludePath>G:\Prog\Other\Cpp\External Libraries\OpenGL;$(IncludePath)</IncludePath>
+    <LibraryPath>G:\Prog\Other\Cpp\External Libraries\OpenGL;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -158,7 +158,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>C:\Users\Brivzemnieka\Desktop\Новая папка\Cpp\OpenGL Projects\includes;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>G:\Prog\Other\Cpp\OpenGL Projects\includes;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -174,7 +174,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\Brivzemnieka\Desktop\Новая папка\Cpp\OpenGL Projects\includes;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>G:\Prog\Other\Cpp\OpenGL Projects\includes;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>

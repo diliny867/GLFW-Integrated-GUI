@@ -75,7 +75,7 @@
     <ClCompile Include="src\InputManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\Users\Brivzemnieka\Desktop\Новая папка\Cpp\External Libraries\OpenGL\glad.c">
+    <ClCompile Include="G:\Prog\Other\Cpp\External Libraries\OpenGL\glad.c">
       <Filter>Source Files\GL</Filter>
     </ClCompile>
   </ItemGroup>

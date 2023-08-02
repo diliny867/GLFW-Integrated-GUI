@@ -2,6 +2,7 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
+#include <glm/gtx/quaternion.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "BoundingBox.h"
@@ -11,7 +12,7 @@ class GUITransform {
 public:
 	glm::vec2 position;
 	glm::vec2 size;
-	glm::quat rotation;
+	glm::quat rotation; //TODO: fix rotations !!!!!!1!11!1!11!
 	GUITransform():position(0.0f),size(0.0f),rotation(glm::vec3(0.0f)){}
 	GUITransform(const glm::vec2 position_,const glm::vec2 size_,const glm::quat rotation_):position(position_),size(size_),rotation(rotation_){}
 	explicit GUITransform(const BoundingBox& bb):position(bb.min),size(bb.GetSize()),rotation(glm::vec3(0.0f)){}
@@ -38,13 +39,13 @@ public:
 	}
 
 	BoundingBox CalculateEnclosingBoundingBox() const {
-		const glm::vec2 c1 = rotation*glm::vec4(position,0.0f,0.0f);
-		const glm::vec2 c2 = rotation*glm::vec4(position.x+size.x,position.y,0.0f,0.0f);
-		const glm::vec2 c3 = rotation*glm::vec4(position.x,position.y+size.y,0.0f,0.0f);
-		const glm::vec2 c4 = rotation*glm::vec4(position+size,0.0f,0.0f);
+		const glm::vec2 c1 = glm::vec4(position,0.0f,0.0f);
+		const glm::vec2 c2 = glm::vec4(position.x+size.x,position.y,0.0f,0.0f);
+		const glm::vec2 c3 = glm::vec4(position.x,position.y+size.y,0.0f,0.0f);
+		const glm::vec2 c4 = glm::vec4(position+size,0.0f,0.0f);
 		
-		const glm::vec2 minMaxX = minMaxFrom4(c1.x,c2.x,c3.x,c4.x);
-		const glm::vec2 minMaxY = minMaxFrom4(c1.y,c2.y,c3.y,c4.y);
+		const glm::vec2 minMaxX = glm::rotate(rotation,glm::vec3(minMaxFrom4(c1.x,c2.x,c3.x,c4.x),0.0f));
+		const glm::vec2 minMaxY = glm::rotate(rotation,glm::vec3(minMaxFrom4(c1.y,c2.y,c3.y,c4.y),0.0f));
 		
 		return BoundingBox(minMaxX.x,minMaxY.x,minMaxX.y,minMaxY.y);
 	}

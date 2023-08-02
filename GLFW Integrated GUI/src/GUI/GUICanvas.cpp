@@ -26,7 +26,7 @@ void GUICanvas::AddListener(EventListener*listener) {
 }
 
 bool GUICanvas::CheckClick(const float x,const float y) const {
-	return boundingBox.ContainsPoint(x,y); // && clickDetectionTransform.ContainsPoint(x,y)
+	return boundingBox.ContainsPoint(x,y); // && transform.ContainsPoint(x,y)
 }
 
 void GUICanvas::SetSnap(const Side side,const SideSnap::SnapType sideSnapType,const SideSnap::SnapState sideSnapState) {
@@ -512,11 +512,15 @@ void GUICanvas::updateModelMatrix() {
 	//model = glm::mat4(1.0f);
 	//model = glm::translate(model,glm::vec3(boundingBox.min.x,boundingBox.max.y,0.0f));
 	//model = glm::scale(model,glm::vec3(boundingBox.getWidth(),-boundingBox.getHeight(),1.0f));
-	//model = transform.ToMat4();
-	model = glm::mat4(1.0f);
-	model = glm::translate(model,glm::vec3(transform.position.x,transform.position.y+transform.size.y,0.0f));
-	model = glm::scale(model,glm::vec3(transform.size.x,-transform.size.y,1.0f));
-	model *= glm::mat4_cast(transform.rotation);
+	//model = glm::mat4(1.0f);
+	//model = glm::translate(model,glm::vec3(transform.position.x,transform.position.y+transform.size.y,0.0f));
+	//model = glm::scale(model,glm::vec3(transform.size.x,-transform.size.y,1.0f));
+	//model *= glm::mat4_cast(transform.rotation);
+
+	//transform.rotation = glm::quat(glm::vec3(0.f,0.f,0.1f));
+
+	const glm::mat4 offsetToTopMatrix = glm::translate(glm::mat4(1.0f),glm::vec3(0.0f,guiSystem->GetScreenSize().y-transform.position.y*2.0f-transform.size.y,0.0f));
+	model = offsetToTopMatrix * transform.ToMat4();
 }
 
 void GUICanvas::UpdateBoundingBox() {

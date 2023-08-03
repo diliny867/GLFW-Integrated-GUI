@@ -509,18 +509,9 @@ void GUICanvas::Undirty() {
 //	model = glm::scale(model,glm::vec3(boundingBox.width,-boundingBox.height,1.0f));
 //}
 void GUICanvas::updateModelMatrix() {
-	//model = glm::mat4(1.0f);
-	//model = glm::translate(model,glm::vec3(boundingBox.min.x,boundingBox.max.y,0.0f));
-	//model = glm::scale(model,glm::vec3(boundingBox.getWidth(),-boundingBox.getHeight(),1.0f));
-	//model = glm::mat4(1.0f);
-	//model = glm::translate(model,glm::vec3(transform.position.x,transform.position.y+transform.size.y,0.0f));
-	//model = glm::scale(model,glm::vec3(transform.size.x,-transform.size.y,1.0f));
-	//model *= glm::mat4_cast(transform.rotation);
-
 	//transform.rotation = glm::quat(glm::vec3(0.f,0.f,0.1f));
 
-	const glm::mat4 offsetToTopMatrix = glm::translate(glm::mat4(1.0f),glm::vec3(0.0f,guiSystem->GetScreenSize().y-transform.position.y*2.0f-transform.size.y,0.0f));
-	model = offsetToTopMatrix * transform.ToMat4();
+	model = transform.ToMat4();
 }
 
 void GUICanvas::UpdateBoundingBox() {

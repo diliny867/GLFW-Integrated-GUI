@@ -27,6 +27,8 @@
 #include "BoundingBox.h"
 #include "../InputManager.h"
 
+//#define BB_CHECK_TRANSFORM_FOR_CLICK
+#define DRAW_BOUNDING_BOXES
 
 class GUISystem {
 public:
@@ -34,7 +36,7 @@ public:
 		DISABLED,
 		ACTIVE
 	};
-protected:
+
 	GlobalState state;
 	GLFWwindow* window;
 
@@ -51,6 +53,7 @@ protected:
 	Texture2D* mainFramebufferTexture;
 	Shader* mainFramebuffeShader;
 	Shader* canvasShader;
+	Shader* colorShader;
 
 	glm::mat4 projection = glm::mat4(1.0f);
 	glm::mat4 model = glm::mat4(1.0f);

@@ -98,6 +98,12 @@
     <None Include="resources\shaders\GUI\canvasShader_vs.glsl">
       <Filter>Resource Files\Shaders\GUI</Filter>
     </None>
+    <None Include="resources\shaders\GUI\colorShader_fs.glsl">
+      <Filter>Resource Files\Shaders\GUI</Filter>
+    </None>
+    <None Include="resources\shaders\GUI\colorShader_vs.glsl">
+      <Filter>Resource Files\Shaders\GUI</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\GL\Camera.h">

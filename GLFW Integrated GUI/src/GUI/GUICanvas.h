@@ -59,6 +59,7 @@ protected:
 	void updateSizesRecursive();
 	void updateModelMatrix();
 	void notifyAllSnappedToThis();
+	void updateBoundingBox();
 	BoundingBox boundingBox;
 public:
 
@@ -92,7 +93,7 @@ public:
 	void MarkDirty();
 	bool IsDirty() const;
 	void UpdateView();
-	void UpdateBoundingBox();
+	BoundingBox GetBoundingBox() const;
 	void SetTexture(const char* path);
 	void SetTexture(Texture2D* texture_);
 	glm::mat4 GetDrawModelMatrix() const;

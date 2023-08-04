@@ -14,6 +14,9 @@ public:
     float GetWidth() const { return max.x - min.x; }
     float GetHeight() const { return max.y - min.y; }
     glm::vec2 GetSize() const { return max - min; }
+    float GetPosX() const{ return min.x; }
+    float GetPosY() const{ return min.y; }
+    glm::vec2 GetPosition() const{ return min; }
 
     bool Intersects(const BoundingBox& other) const {
         return !(max.x < other.min.x || other.max.x < min.x || max.y < other.min.y || other.max.y < min.y);

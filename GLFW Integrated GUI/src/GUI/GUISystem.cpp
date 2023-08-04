@@ -4,7 +4,7 @@
 GUISystem::GUISystem():state(ACTIVE), window(nullptr),
 	quadEBO(0), screenQuadVBO(0), screenQuadVAO(0),canvasVBO(0),canvasVAO(0),
 	mainFramebuffer(0),mainRenderbuffer(0),
-	mainFramebufferTexture(nullptr),mainFramebuffeShader(nullptr),canvasShader(nullptr)
+	mainFramebufferTexture(nullptr),mainFramebuffeShader(nullptr),canvasShader(nullptr),colorShader(nullptr)
 {}
 
 void GUISystem::Deactivate() {
@@ -104,12 +104,16 @@ void GUISystem::Init(GLFWwindow* window_) {
 
 	mainFramebuffeShader = new Shader("resources/shaders/GUI/mainFBOShader_vs.glsl","resources/shaders/GUI/mainFBOShader_fs.glsl");
 	canvasShader = new Shader("resources/shaders/GUI/canvasShader_vs.glsl","resources/shaders/GUI/canvasShader_fs.glsl");
+	colorShader = new Shader("resources/shaders/GUI/colorShader_vs.glsl","resources/shaders/GUI/colorShader_fs.glsl");
 	mainFramebuffeShader->use();
 	mainFramebuffeShader->setInt("screen_texture",0);
 	canvasShader->use();
 	canvasShader->setMat4("projection",projection);
 	canvasShader->setMat4("model",model);
 	canvasShader->setInt("texture_diffuse1",0);
+
+	colorShader->use();
+	colorShader->setMat4("projection",projection);
 
 	activeCheckedLayers.insert(0);
 
@@ -134,18 +138,15 @@ void GUISystem::checkActivateAllEventListeners() const {
 		std::vector<EventListener*> unactiveListeners;
 		std::vector<EventListener*> topListeners;
 		GUILayer topLayer = INT_MIN;
-		bool newElement = true;
 		for(const auto& element: guiElements) {
 			if(!IsLayerChecksEnabled(element->layer)) {
 				continue;
 			}
-			newElement = true;
 			for(const auto& listener: element->listeners) {
 				if(listener->Check()) {
 					if(element->layer>=topLayer) {
-						if(newElement) {
+						if(element->layer!=topLayer) {
 							topListeners.clear();
-							newElement = false;
 						}
 						topListeners.push_back(listener);
 						topLayer = element->layer;
@@ -175,6 +176,8 @@ void GUISystem::updateOnScreenSizeChange() {
 	projection = glm::ortho(0.0f,(float)screenSize.x,(float)screenSize.y,0.0f,-1000.0f,1000.0f);
 	canvasShader->use();
 	canvasShader->setMat4("projection",projection);
+	colorShader->use();
+	colorShader->setMat4("projection",projection);
 
 	mainFramebufferTexture->setTexImage(screenSize.x,screenSize.y,GL_RGBA,GL_RGBA,GL_UNSIGNED_BYTE);
 	RBO::bind(mainRenderbuffer);
@@ -198,13 +201,28 @@ void GUISystem::rerenderToFramebuffer() const {
 	for(const auto& element: guiElements) {
 		if(hiddenLayers.count(element->layer)>0 || element->texture == nullptr){ continue; }
 		canvasShader->setMat4("model",element->GetDrawModelMatrix());
-		canvasShader->setFloat("layer",(float)element->layer);
 		element->texture->activate(0);
 		//glDrawElements(GL_TRIANGLES,6,GL_UNSIGNED_INT,0);
 		glDrawArrays(GL_TRIANGLES,0,6);
+
+#ifdef DRAW_BOUNDING_BOXES
+		glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
+		//glDisable(GL_DEPTH_TEST);
+		const BoundingBox bb = element->GetBoundingBox();
+		glm::mat4 mat = glm::mat4(1.0f);
+		mat = glm::translate(mat,glm::vec3(bb.GetPosition(),1000.0f));
+		mat = glm::scale(mat,glm::vec3(bb.GetSize(),0.0f));
+		colorShader->use();
+		colorShader->setMat4("model",mat);
+		colorShader->setVec4("color",glm::vec4(1.0f));
+		glDrawArrays(GL_TRIANGLES,0,6);
+		//glEnable(GL_DEPTH_TEST);
+		glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
+		canvasShader->use();
+#endif
 	}
 	FBO::unbind();
-	std::cout<<"Rerenders To Framebuffer: "<<++rerendersCount<<std::endl;
+	//std::cout<<"Rerenders To Framebuffer: "<<++rerendersCount<<std::endl;
 }
 
 void GUISystem::renderFromFramebuffer() const {

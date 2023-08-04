@@ -38,6 +38,8 @@
   <ItemGroup>
     <None Include="resources\shaders\GUI\canvasShader_fs.glsl" />
     <None Include="resources\shaders\GUI\canvasShader_vs.glsl" />
+    <None Include="resources\shaders\GUI\colorShader_fs.glsl" />
+    <None Include="resources\shaders\GUI\colorShader_vs.glsl" />
     <None Include="resources\shaders\GUI\mainFBOShader_fs.glsl" />
     <None Include="resources\shaders\GUI\mainFBOShader_vs.glsl" />
     <None Include="resources\shaders\shader_fs.glsl" />

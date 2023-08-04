@@ -86,6 +86,7 @@ int main() {
     Texture2D* saulTexture = new Texture2D("resources/saul_3d.jpg",TextureType::Diffuse);
     Texture2D* sillyTexture = new Texture2D("resources/silly.jpg",TextureType::Diffuse);
     Texture2D* earthBurnTexture = new Texture2D("resources/earth_burn.png",TextureType::Diffuse);
+    Texture2D* whiteTexture = new Texture2D("resources/white.png",TextureType::Diffuse);
 
     mainGUI.Init(window);
     mainGUI.SetClickDetectionUnderLayer(false);
@@ -143,7 +144,6 @@ int main() {
         }
         ));
     gb->SetTexture(saulTexture);
-    gb->UpdateView();
     mainGUI.AddCanvasElement(gb);
 
     GUICanvas* gb2 = new GUICanvas(300,100,300,60,&mainGUI);
@@ -151,6 +151,8 @@ int main() {
         EL_Check_StartHereHoldUntilRelease_Func,
         [](const EventListener* el)->void {
             const InputManager::Mouse& mouse = InputManager::mouse;
+            el->guiElement->transform.position.y += mouse.deltaY;
+            el->guiElement->MarkDirty();
         },
         []() {
             std::cout<<"LEFT HOLD\n";
@@ -160,6 +162,9 @@ int main() {
         EL_Check_StartHereHoldUntilReleaseRMB_Func,
         [](const EventListener* el)->void {
 			const InputManager::Mouse& mouse = InputManager::mouse;
+            if(mouse.leftPress){ return; }
+            el->guiElement->transform.position.y += mouse.deltaY;
+            el->guiElement->MarkDirty();
         },
         []() {
             std::cout<<"RIGHT HOLD\n";
@@ -168,9 +173,21 @@ int main() {
     gb2->SetTexture(sillyTexture);
     gb2->SetSnap(GUICanvas::LEFT,GUICanvas::SideSnap::SCALE,GUICanvas::SideSnap::CANVAS,gb);
     gb2->SetSnap(GUICanvas::RIGHT,GUICanvas::SideSnap::SCALE,GUICanvas::SideSnap::WINDOW);
-    gb2->MarkDirty();
-    gb2->UpdateView();
     mainGUI.AddCanvasElement(gb2);
+
+    GUICanvas* gb3 = new GUICanvas(600,400,100,100,&mainGUI);
+    gb3->AddListener(new EventListener(
+		EL_Check_StartHereHoldUntilRelease_Func,
+        [](const EventListener* el)->void {
+            const InputManager::Mouse& mouse = InputManager::mouse;
+            el->guiElement->transform.position += glm::vec2(mouse.deltaX,mouse.deltaY);
+            el->guiElement->MarkDirty();
+        },
+        []() {
+        }
+    ));
+    gb3->SetTexture(whiteTexture);
+    mainGUI.AddCanvasElement(gb3);
 
 
     //glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);

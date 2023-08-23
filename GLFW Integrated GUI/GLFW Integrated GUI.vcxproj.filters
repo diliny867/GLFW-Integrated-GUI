@@ -157,5 +157,11 @@
     <ClInclude Include="src\GUI\GUITransform.h">
       <Filter>Header Files\GUI</Filter>
     </ClInclude>
+    <ClInclude Include="src\GUI\GUICanvasViewData.h">
+      <Filter>Header Files\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glm_useful_includes.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

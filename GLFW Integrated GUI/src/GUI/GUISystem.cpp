@@ -198,9 +198,10 @@ void GUISystem::rerenderToFramebuffer() const {
 	VAO::bind(canvasVAO);
 	//EBO::bind(quadEBO);
 	canvasShader->use();
-	for(const auto& element: guiElements) {
+	for(const auto& element: guiElements) { //?sort by layer, draw without depth test
 		if(hiddenLayers.count(element->layer)>0 || element->texture == nullptr){ continue; }
 		canvasShader->setMat4("model",element->GetDrawModelMatrix());
+		canvasShader->setVec4("colorTint",element->viewData.colorTint);
 		element->texture->activate(0);
 		//glDrawElements(GL_TRIANGLES,6,GL_UNSIGNED_INT,0);
 		glDrawArrays(GL_TRIANGLES,0,6);

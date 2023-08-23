@@ -4,6 +4,7 @@
 #include <glm/glm.hpp>//OpenGL Mathematics
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include "../include/glm_useful_includes.hpp"
 
 #include <iostream>
 #include <functional>
@@ -87,11 +88,12 @@ int main() {
     Texture2D* sillyTexture = new Texture2D("resources/silly.jpg",TextureType::Diffuse);
     Texture2D* earthBurnTexture = new Texture2D("resources/earth_burn.png",TextureType::Diffuse);
     Texture2D* whiteTexture = new Texture2D("resources/white.png",TextureType::Diffuse);
+    Texture2D* vesselsBgTexture = new Texture2D("resources/vessels_bg.png",TextureType::Diffuse);
 
     mainGUI.Init(window);
     mainGUI.SetClickDetectionUnderLayer(false);
 
-    GUICanvas* exitButton = new GUICanvas(0,0,50,50,&mainGUI);
+    GUICanvas* exitButton = new GUICanvas(0,0,50,50);
     exitButton->AddListener(new EventListener(
         EL_Check_SingleClick_Func,
         [](EventListener* el)->void {
@@ -101,21 +103,25 @@ int main() {
             glfwSetWindowShouldClose(window,true);
         }
     ));
+    float exitButtonAngle = 0.0f;
     exitButton->AddListener(new EventListener(
         EL_Check_OnHover_Func,
-        [](const EventListener* el) {
+        [&exitButtonAngle](const EventListener* el) {
             GUICanvas* element = el->guiElement;
 
 			constexpr float sizeChange = 1.1f;
 			constexpr float sizeOffset = (1.0f-sizeChange)/2.0f;
-            element->viewTransformMat4 = glm::translate(glm::mat4(1.0f),glm::vec3(sizeOffset,sizeOffset,0.0f));
-            element->viewTransformMat4 = glm::scale(element->viewTransformMat4,glm::vec3(sizeChange,sizeChange,1.0f));
+            element->localViewTransformMat4 = glm::translate(glm::mat4(1.0f),glm::vec3(sizeOffset,sizeOffset,0.0f));
+            element->localViewTransformMat4 = glm::scale(element->localViewTransformMat4,glm::vec3(sizeChange,sizeChange,1.0f));
+            element->localViewTransformMat4 = glm::rotateAroundPivot(element->localViewTransformMat4,exitButtonAngle,glm::vec3(0.0f,0.0f,1.0f),glm::vec3(0.0f)); //0, because its local view transform mat4
+            exitButtonAngle += 0.001f;
             element->MarkDirty();
         },
-        [](const EventListener* el) {
+        [&exitButtonAngle](const EventListener* el) {
             GUICanvas* element = el->guiElement;
-            if(element->viewTransformMat4 != glm::mat4(1.0f)){
-                element->viewTransformMat4 = glm::mat4(1.0f);
+            if(element->localViewTransformMat4 != glm::mat4(1.0f)){
+                element->localViewTransformMat4 = glm::mat4(1.0f);
+                element->localViewTransformMat4 = glm::rotateAroundPivot(element->localViewTransformMat4,exitButtonAngle,glm::vec3(0.0f,0.0f,1.0f),glm::vec3(0.0f));
                 element->MarkDirty();
             }
         },
@@ -130,7 +136,7 @@ int main() {
     mainGUI.EnableLayerChecks(1);
     mainGUI.AddCanvasElement(exitButton);
 
-    GUICanvas* gb = new GUICanvas(0,0,400,400,&mainGUI);
+    GUICanvas* gb = new GUICanvas(0,0,400,400);
     gb->AddListener(new EventListener(
         EL_Check_SingleClick_Func,
         [](const EventListener* el)->void {
@@ -143,10 +149,12 @@ int main() {
             std::cout<<"CLICK\n";
         }
         ));
+    gb->SetSnap(GUICanvas::LEFT,GUICanvas::SideSnap::SCALE,GUICanvas::SideSnap::WINDOW);
+    gb->SetSnap(GUICanvas::TOP,GUICanvas::SideSnap::DRAG,GUICanvas::SideSnap::WINDOW);
     gb->SetTexture(saulTexture);
     mainGUI.AddCanvasElement(gb);
 
-    GUICanvas* gb2 = new GUICanvas(300,100,300,60,&mainGUI);
+    GUICanvas* gb2 = new GUICanvas(300,100,300,60);
     gb2->AddListener(new EventListener(
         EL_Check_StartHereHoldUntilRelease_Func,
         [](const EventListener* el)->void {
@@ -175,19 +183,45 @@ int main() {
     gb2->SetSnap(GUICanvas::RIGHT,GUICanvas::SideSnap::SCALE,GUICanvas::SideSnap::WINDOW);
     mainGUI.AddCanvasElement(gb2);
 
-    GUICanvas* gb3 = new GUICanvas(600,400,100,100,&mainGUI);
+    GUICanvas* gb3 = new GUICanvas(600,400,100,100);
     gb3->AddListener(new EventListener(
 		EL_Check_StartHereHoldUntilRelease_Func,
         [](const EventListener* el)->void {
             const InputManager::Mouse& mouse = InputManager::mouse;
-            el->guiElement->transform.position += glm::vec2(mouse.deltaX,mouse.deltaY);
+            el->guiElement->transform.position += glm::vec3(mouse.deltaX,mouse.deltaY,0.0f);
+            const glm::vec2 center = el->guiElement->transform.position;
+            el->guiElement->transform.rotation = glm::angleAxis(10.0f*(float)Time::deltaTime,glm::vec3(0.0f,0.0f,1.0f))*el->guiElement->transform.rotation;
             el->guiElement->MarkDirty();
         },
         []() {
+            std::cout<<"LEFT HOLD\n";
         }
     ));
+    gb3->AddListener(new EventListener(
+        EL_Check_StartHereHoldUntilReleaseRMB_Func,
+        [](const EventListener* el)->void {
+            const InputManager::Mouse& mouse = InputManager::mouse;
+            if(!mouse.leftPress) {
+                el->guiElement->transform.position += glm::vec3(mouse.deltaX,mouse.deltaY,0.0f);
+            }
+            el->guiElement->transform.rotation = glm::angleAxis(-10.0f*(float)Time::deltaTime,glm::vec3(0.0f,0.0f,1.0f))*el->guiElement->transform.rotation;
+            el->guiElement->MarkDirty();
+        },
+        []() {
+            std::cout<<"RIGHT HOLD\n";
+        }
+	));
     gb3->SetTexture(whiteTexture);
     mainGUI.AddCanvasElement(gb3);
+
+    GUICanvas* bg = new GUICanvas();
+    bg->SetSnap(GUICanvas::LEFT,GUICanvas::SideSnap::SCALE,GUICanvas::SideSnap::WINDOW);
+    bg->SetSnap(GUICanvas::RIGHT,GUICanvas::SideSnap::SCALE,GUICanvas::SideSnap::WINDOW);
+    bg->SetSnap(GUICanvas::TOP,GUICanvas::SideSnap::SCALE,GUICanvas::SideSnap::WINDOW);
+    bg->SetSnap(GUICanvas::BOTTOM,GUICanvas::SideSnap::SCALE,GUICanvas::SideSnap::WINDOW);
+    bg->SetTexture(vesselsBgTexture);
+    bg->viewData.colorTint = glm::vec4(glm::vec3(0.3f),1.0f);
+    mainGUI.AddCanvasElement(bg);
 
 
     //glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);

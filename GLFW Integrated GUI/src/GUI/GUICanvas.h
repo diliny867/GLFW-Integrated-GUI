@@ -12,6 +12,7 @@
 #include "BoundingBox.h"
 #include "GUICommon.h"
 #include "GUITransform.h"
+#include "GUICanvasViewData.h"
 
 #include <deque>
 
@@ -35,7 +36,6 @@ public:
 		SnapState state;
 		SnapType type;
 		GUICanvas* canvas;
-		//GUICanvas* source; //TODO: Add this to update elements snapped to this object (like add something like NotifySnaps() function)
 		SideSnap():state(NO_SNAP),type(DRAG),canvas(nullptr) {}
 		SideSnap(const SnapState state_):state(state_),type(DRAG),canvas(nullptr) {}
 		SideSnap(const SnapState state_,const SnapType type_):state(state_),type(type_),canvas(nullptr){}
@@ -67,7 +67,7 @@ public:
 
 	glm::mat4 model = glm::mat4(1.0f);
 
-	glm::mat4 viewTransformMat4 = glm::mat4(1.0f);
+	glm::mat4 localViewTransformMat4 = glm::mat4(1.0f);
 
 	GUITransform transform;
 
@@ -80,7 +80,10 @@ public:
 
 	Texture2D* texture = nullptr;
 
+	GUICanvasViewData viewData;
+
 	GUICanvas();
+	GUICanvas(GUISystem* guiSystem_);
 	//GUICanvas(const double x,const double y,const double width,const double height);
 	//GUICanvas(const double x,const double y,const double width,const double height, GUISystem* guiSystem_);
 	GUICanvas(const float x,const float y,const float width,const float height);

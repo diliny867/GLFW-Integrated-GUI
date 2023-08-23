@@ -32,7 +32,31 @@ public:
 };
 
 
-
+#define EL_Check_Always_Func												\
+[](const EventListener* el)->bool {											\
+	return true;															\
+}
+#define EL_Check_Never_Func													\
+[](const EventListener* el)->bool {											\
+	return false;															\
+}
+#define EL_Check_SingleClick_Func											\
+[](const EventListener* el)->bool {											\
+	const InputManager::Mouse& mouse = InputManager::mouse;					\
+	static bool clickHolding = false;										\
+	if(mouse.leftPress) {													\
+		if(clickHolding == true) {											\
+			return false;													\
+		}																	\
+		clickHolding = true;												\
+		if(el->guiElement->CheckClick(mouse.posX,mouse.posY)){				\
+			return true;													\
+		}																	\
+	} else {																\
+		clickHolding = false;												\
+	}																		\
+	return false;															\
+}
 #define EL_Check_SingleClick_Func											\
 [](const EventListener* el)->bool {											\
 	const InputManager::Mouse& mouse = InputManager::mouse;					\

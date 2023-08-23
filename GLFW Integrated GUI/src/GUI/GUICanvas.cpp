@@ -7,6 +7,9 @@
 GUICanvas::GUICanvas():boundingBox(0,0,0,0),transform(boundingBox),guiSystem(nullptr) {
 	updateModelMatrix();
 }
+GUICanvas::GUICanvas(GUISystem* guiSystem_):boundingBox(0,0,0,0),transform(boundingBox),guiSystem(guiSystem_) {
+	updateModelMatrix();
+}
 //GUICanvas::GUICanvas(const double x, const double y, const double width, const double height):boundingBox(x,y,width,height),guiSystem(nullptr) {
 //	updateModelMatrix();
 //}
@@ -57,9 +60,9 @@ void GUICanvas::notifyAllSnappedToThis() {
 	for(const auto& snap: snappedToThis) {
 		snap->MarkDirty();
 	}
-	for(const auto& snap: snappedToThis) {
-		snap->UpdateView();
-	}
+	//for(const auto& snap: snappedToThis) {
+	//	snap->UpdateView();
+	//}
 }
 
 GUICanvas::Side GUICanvas::indexToSide(const int index) {
@@ -93,12 +96,164 @@ int GUICanvas::sideToIndex(const Side side) {
 
 void GUICanvas::MarkDirty() {
 	dirty = true;
-	guiSystem->MarkDirty();
+	if(guiSystem!=nullptr){
+		guiSystem->MarkDirty();
+	}
 }
 bool GUICanvas::IsDirty() const {
 	return dirty;
 }
 
+void GUICanvas::updateSizesRecursive(const Side side) {
+	//TODO: add check if snaps are identical or cyclic
+	 const SideSnap sideSnap = sideSnaps[sideToIndex(side)];
+	if(sideSnap.state == SideSnap::NO_SNAP || side == UNKNOWN) {
+		return;
+	}
+	//std::cout<<"Update\n";
+	if(sideSnap.state == SideSnap::WINDOW) {
+		const glm::vec2 screenSize = guiSystem->GetScreenSize();
+		switch(side) {
+		case Side::LEFT:
+			switch(sideSnap.type) {
+			case SideSnap::DRAG:
+			case SideSnap::DRAG_STRAIGHT:
+				transform.position.x = transform.GetHalfWidth();
+				break;
+			case SideSnap::SCALE:
+			case SideSnap::SCALE_STRAIGHT:
+				transform.position.x = transform.GetX2()*0.5f;
+				transform.size.x = transform.position.x*2.0f;
+				break;
+			}
+			break;
+		case Side::RIGHT:
+			switch(sideSnap.type) {
+			case SideSnap::DRAG:
+			case SideSnap::DRAG_STRAIGHT:
+				transform.position.x = screenSize.x-transform.GetHalfWidth();
+				break;
+			case SideSnap::SCALE:
+			case SideSnap::SCALE_STRAIGHT:
+				transform.position.x = transform.GetX1()+(screenSize.x-transform.GetX1())*0.5f;
+				transform.size.x = (screenSize.x-transform.position.x)*2.0f;
+				break;
+			}
+			break;
+		case Side::TOP:
+			switch(sideSnap.type) {
+			case SideSnap::DRAG:
+			case SideSnap::DRAG_STRAIGHT:
+				transform.position.y = transform.GetHalfHeight();
+				break;
+			case SideSnap::SCALE:
+			case SideSnap::SCALE_STRAIGHT:
+				transform.position.y = transform.GetY2()*0.5f;
+				transform.size.y = transform.position.y*2.0f;
+				break;
+			}
+			break;
+		case Side::BOTTOM:
+			switch(sideSnap.type) {
+			case SideSnap::DRAG:
+			case SideSnap::DRAG_STRAIGHT:
+				transform.position.y = screenSize.y-transform.GetHalfHeight();
+				break;
+			case SideSnap::SCALE:
+			case SideSnap::SCALE_STRAIGHT:
+				transform.position.y = transform.GetY1()+(screenSize.y-transform.GetY1())*0.5f;
+				transform.size.y = (screenSize.y-transform.position.y)*2.0f;
+				break;
+			}
+			break;
+		default:
+			break;
+		}
+	} 
+	if(sideSnap.state == SideSnap::CANVAS){
+		const glm::vec2 lastMax = transform.GetMax();
+		const glm::vec2 lastMin = transform.GetMin();
+		const glm::vec2 otherMax = sideSnap.canvas->transform.GetMax();
+		const glm::vec2 otherMin = sideSnap.canvas->transform.GetMin();
+		switch(side) {
+		case Side::LEFT:
+			switch (sideSnap.type) {
+			case SideSnap::DRAG:
+				transform.position.x = otherMax.x+transform.GetHalfWidth();
+				break;
+			case SideSnap::DRAG_STRAIGHT:
+				transform.position.x = otherMin.x+transform.GetHalfWidth();
+				break;
+			case SideSnap::SCALE:
+				transform.position.x = otherMax.x+(lastMax.x-otherMax.x)*0.5f;
+				transform.size.x = (lastMax.x-transform.position.x)*2.0f;
+				break;
+			case SideSnap::SCALE_STRAIGHT:
+				transform.position.x = otherMin.x+(lastMax.x-otherMin.x)*0.5f;
+				transform.size.x = (lastMax.x-transform.position.x)*2.0f;
+				break;
+			}
+			break;
+		case Side::RIGHT:
+			switch(sideSnap.type) {
+			case SideSnap::DRAG:
+				transform.position.x = otherMin.x-transform.GetHalfWidth();
+				break;
+			case SideSnap::DRAG_STRAIGHT:
+				transform.position.x = otherMax.x-transform.GetHalfWidth();
+				break;
+			case SideSnap::SCALE:
+				transform.position.x = lastMin.x+(otherMin.x-lastMin.x)*0.5f;
+				transform.size.x = (transform.position.x-lastMin.x)*2.0f;
+				break;
+			case SideSnap::SCALE_STRAIGHT:
+				transform.position.x = lastMin.x+(otherMax.x-lastMin.x)*0.5f;
+				transform.size.x = (transform.position.x-lastMin.x)*2.0f;
+				break;
+			}
+			break;
+		case Side::TOP:
+			switch(sideSnap.type) {
+			case SideSnap::DRAG:
+				transform.position.y = otherMax.y+transform.GetHalfHeight();
+				break;
+			case SideSnap::DRAG_STRAIGHT:
+				transform.position.y = otherMin.y+transform.GetHalfHeight();
+				break;
+			case SideSnap::SCALE:
+				transform.position.y = otherMax.y+(lastMax.y-otherMax.y)*0.5f;
+				transform.size.y = (lastMax.y-transform.position.y)*2.0f;
+				break;
+			case SideSnap::SCALE_STRAIGHT:
+				transform.position.y = otherMin.y+(lastMax.y-otherMin.y)*0.5f;
+				transform.size.y = (lastMax.y-transform.position.y)*2.0f;
+				break;
+			}
+			break;
+		case Side::BOTTOM:
+			switch(sideSnap.type) {
+			case SideSnap::DRAG:
+				transform.position.y = otherMin.y-transform.GetHalfHeight();
+				break;
+			case SideSnap::DRAG_STRAIGHT:
+				transform.position.y = otherMax.y-transform.GetHalfHeight();
+				break;
+			case SideSnap::SCALE:
+				transform.position.y = lastMin.y+(otherMin.y-lastMin.y)*0.5f;
+				transform.size.y = (transform.position.y-lastMin.y)*2.0f;
+				break;
+			case SideSnap::SCALE_STRAIGHT:
+				transform.position.y = lastMin.y+(otherMax.y-lastMin.y)*0.5f;
+				transform.size.y = (transform.position.y-lastMin.y)*2.0f;
+				break;
+			}
+			break;
+		default:
+			break;
+		}
+	}
+}
+/*
 void GUICanvas::updateSizesRecursive(const Side side) {
 	//TODO: add check if snaps are identical or cyclic
 	 const SideSnap sideSnap = sideSnaps[sideToIndex(side)];
@@ -137,7 +292,7 @@ void GUICanvas::updateSizesRecursive(const Side side) {
 		default:
 			break;
 		}
-	} 
+	}
 	if(sideSnap.state == SideSnap::CANVAS){
 		sideSnap.canvas->updateSizesRecursive(side);
 		GUITransform& otherTransform = sideSnap.canvas->transform;
@@ -216,6 +371,8 @@ void GUICanvas::updateSizesRecursive(const Side side) {
 		}
 	}
 }
+ */
+
 void GUICanvas::updateSizesRecursive() {
 	if(!dirty) {
 		return;
@@ -257,7 +414,7 @@ void GUICanvas::SetTexture(Texture2D* texture_) {
 }
 
 glm::mat4 GUICanvas::GetDrawModelMatrix() const {
-	return model*viewTransformMat4;
+	return model*localViewTransformMat4;
 }
 
 void GUICanvas::Undirty() {
@@ -265,9 +422,9 @@ void GUICanvas::Undirty() {
 }
 
 void GUICanvas::updateModelMatrix() {
-	transform.rotation = glm::quat(glm::vec3(-0.3f));
+	//transform.rotation = glm::quat(glm::vec3(-0.3f));
 
-	model = transform.ToMat4((float)layer);
+	model = transform.ToMat4(layer);
 }
 
 void GUICanvas::updateBoundingBox() {

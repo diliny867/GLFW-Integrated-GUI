@@ -25,7 +25,7 @@
 #include "GUICanvas.h"
 #include "EventListener.h"
 #include "BoundingBox.h"
-#include "../InputManager.h"
+//#include "../InputManager.h"
 
 //#define BB_CHECK_TRANSFORM_FOR_CLICK
 #define DRAW_BOUNDING_BOXES

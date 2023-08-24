@@ -19,6 +19,7 @@
 
 #include <vector>
 #include <unordered_set>
+#include <algorithm>
 #include <cmath>
 
 #include "GUICommon.h"
@@ -26,6 +27,7 @@
 #include "EventListener.h"
 #include "BoundingBox.h"
 #include "../BinaryTree.h"
+#include "../uniqueue.h"
 //#include "../InputManager.h"
 
 //#define BB_CHECK_TRANSFORM_FOR_CLICK
@@ -41,7 +43,7 @@ public:
 		DISABLED,
 		ACTIVE
 	};
-private:
+//private:
 	GlobalState state;
 	GLFWwindow* window;
 
@@ -65,9 +67,11 @@ private:
 
 	bool dirty = false;
 
-	//std::vector<GUICanvas*> guiElements;
+	std::vector<GUICanvas*> guiElements;
 
-	BinaryTree<GUICanvas*> guiElements;
+	//BinaryTree<GUICanvas*> guiElements;
+
+	uniqueue<GUICanvas*> updateQueue;
 
 	std::unordered_set<GUILayer> activeCheckedLayers;
 	std::unordered_set<GUILayer> hiddenLayers;
@@ -79,10 +83,10 @@ private:
 	unsigned int layerFlags = GUI_LAYER_FLAG_ALL_LAYERS_ENABLED | GUI_LAYER_FLAG_CLICK_DETECT_UNDER_LAYER;
 
 	void checkActivateAllEventListeners() const;
-	void updateViewAllGuiElements() const;
+	void updateViewAllGuiElements();
 
 	void updateOnScreenSizeChange();
-	mutable std::size_t rerendersCount = 0; //mutable to be able to change in RerenderToFramebuffer
+	//std::size_t rerendersCount = 0; //mutable to be able to change in RerenderToFramebuffer
 	void rerenderToFramebuffer() const;
 	void renderFromFramebuffer() const;
 public:

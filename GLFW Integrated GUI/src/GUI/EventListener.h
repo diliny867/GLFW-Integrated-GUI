@@ -28,7 +28,7 @@ public:
 
 	bool Check(); //If event listener check worked
 	void OnActivate(); //To change internal state of object, event listener is bound to
-	void OnNotActive(); //maybe remove this?
+	void OnNotActive();
 };
 
 

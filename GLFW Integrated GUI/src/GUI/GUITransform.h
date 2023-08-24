@@ -26,7 +26,7 @@ public:
 		return ToMat4(0);
 	}
 
-	bool ContainsPoint(const float pointX, const float pointY) const { //maybe dont work
+	bool ContainsPoint(const float pointX, const float pointY) const { //this is broken
 		const glm::vec2 translatedPoint = glm::vec2(pointX,pointY) - GetMin();
 		glm::vec2 rotatedPoint = glm::vec2(rotation * glm::vec3(translatedPoint,0.0f));
 		return rotatedPoint.x >= 0 && rotatedPoint.x <= size.x && rotatedPoint.y >= 0 && rotatedPoint.y <= size.y;

@@ -31,7 +31,11 @@ GLFWwindow* GUISystem::GetWindow() const {
 void GUISystem::AddCanvasElement(GUICanvas* element) {
 	element->guiSystem = this;
 	element->MarkDirty();
-	guiElements.Insert(element,[](const GUICanvas* l,const GUICanvas* r)->bool{return l->GetLayer()<r->GetLayer();});
+
+	auto last = std::find_if(guiElements.rbegin(),guiElements.rend(),[&element](const GUICanvas* el)->bool{return el->GetLayer()<element->GetLayer();});
+	guiElements.insert(last._Get_current(),element);
+	
+	//guiElements.Insert(element,[](const GUICanvas* l,const GUICanvas* r)->bool{return l->GetLayer()<r->GetLayer();});
 }
 
 void GUISystem::EnableLayerChecks(const GUILayer layer) {
@@ -139,7 +143,7 @@ void GUISystem::Init(GLFWwindow* window_) {
 
 void GUISystem::checkActivateAllEventListeners() const {
 	if(layerFlags&GUI_LAYER_FLAG_CLICK_DETECT_UNDER_LAYER) {
-		guiElements.Traverse([](const GUICanvas* element) {
+		std::for_each(guiElements.begin(),guiElements.end(),[](const GUICanvas* element) {
 			if(!element->guiSystem->IsLayerChecksEnabled(element->GetLayer())) {
 				return;
 			}
@@ -150,7 +154,7 @@ void GUISystem::checkActivateAllEventListeners() const {
 					listener->OnNotActive();
 				}
 			}
-		});
+			});
 	}else {
 		GUILayer topLayer = LAYER_MIN;
 		for(auto rit = guiElements.rbegin();rit!=guiElements.rend();++rit){
@@ -169,13 +173,14 @@ void GUISystem::checkActivateAllEventListeners() const {
 	}
 }
 
-void GUISystem::updateViewAllGuiElements() const {
-	//int a = 0;
-	for(const auto element: guiElements) {
-		//std::cout<<a++<<" ";
-		element->UpdateView();
+void GUISystem::updateViewAllGuiElements() {
+	//for(const auto element: guiElements) {
+	//	element->UpdateView();
+	//}
+	
+	for(auto it = updateQueue.begin();!updateQueue.empty();it=updateQueue.erase(it)) {
+		(*it)->UpdateView();
 	}
-	//std::cout<<"\n";
 }
 
 void GUISystem::updateOnScreenSizeChange() {
@@ -252,6 +257,7 @@ void GUISystem::NewFrame() {
 	}
 
 	checkActivateAllEventListeners();
+	updateViewAllGuiElements();
 
 	int screenX = 0;
 	int screenY = 0;
@@ -263,14 +269,10 @@ void GUISystem::NewFrame() {
 		for(const auto& element:guiElements) {
 			element->MarkDirty(); //better mark them all dirty before, to prevent a lot of recursion (i think)
 		}
-		for(const auto& element:guiElements) {
-			element->UpdateView();
-		}
 		MarkDirty();
 	}
 
 	if(dirty) {
-		updateViewAllGuiElements();
 		rerenderToFramebuffer();
 	}
 

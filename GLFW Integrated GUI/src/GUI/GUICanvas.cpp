@@ -98,6 +98,7 @@ void GUICanvas::MarkDirty() {
 	dirty = true;
 	if(guiSystem!=nullptr){
 		guiSystem->MarkDirty();
+		guiSystem->updateQueue.insert(this);
 	}
 }
 bool GUICanvas::IsDirty() const {
@@ -110,6 +111,7 @@ void GUICanvas::updateSizesRecursive(const Side side) {
 	if(sideSnap.state == SideSnap::NO_SNAP || side == UNKNOWN) {
 		return;
 	}
+	GUITransform tr = transform;
 	//std::cout<<"Update\n";
 	if(sideSnap.state == SideSnap::WINDOW) {
 		const glm::vec2 screenSize = guiSystem->GetScreenSize();
@@ -251,7 +253,9 @@ void GUICanvas::updateSizesRecursive(const Side side) {
 		default:
 			break;
 		}
-		sideSnap.canvas->MarkDirty();
+		if(tr!=transform){ //or else (bad things)
+			sideSnap.canvas->MarkDirty();
+		}
 	}
 }
 /*

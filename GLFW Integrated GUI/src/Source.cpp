@@ -139,20 +139,36 @@ int main() {
     mainGUI.AddCanvasElement(exitButton);
 
     GUICanvas* gb = new GUICanvas(0,0,400,400);
+    glm::vec2 saulMouseOffset = glm::vec2(0.0f);
     gb->AddListener(new EventListener(
         EL_Check_SingleClick_Func,
-        [](const EventListener* el)->void {
+        [&](const EventListener* el)->void {
             GUICanvas* element = el->guiElement;
-            element->transform.size.x *= 0.95f;
-			element->transform.size.y += 5;
+            //element->transform.size.x *= 0.95f;
+			//element->transform.size.y += 5;
+            saulMouseOffset = glm::vec2(InputManager::mouse.posX,InputManager::mouse.posY) - glm::vec2(element->transform.position);
 			element->MarkDirty();
         },
         []() {
             std::cout<<"CLICK\n";
         }
         ));
-    gb->SetSnap(GUICanvas::LEFT,GUICanvas::SideSnap::SCALE,GUICanvas::SideSnap::WINDOW);
-    gb->SetSnap(GUICanvas::TOP,GUICanvas::SideSnap::DRAG,GUICanvas::SideSnap::WINDOW);
+    gb->AddListener(new EventListener(
+        EL_Check_StartHereHoldUntilRelease_Func,
+        [&saulMouseOffset](const EventListener* el)->void {
+            GUICanvas* element = el->guiElement;
+            const InputManager::Mouse& mouse = InputManager::mouse;
+            const glm::vec2 mousePos = glm::vec2(mouse.posX,mouse.posY);
+
+            element->transform.position = glm::vec3(mousePos - saulMouseOffset,element->transform.position.z);
+
+            element->MarkDirty();
+        },
+        []() {
+        }
+        ));
+    //gb->SetSnap(GUICanvas::LEFT,GUICanvas::SideSnap::SCALE,GUICanvas::SideSnap::WINDOW);
+    //gb->SetSnap(GUICanvas::TOP,GUICanvas::SideSnap::DRAG,GUICanvas::SideSnap::WINDOW);
     gb->SetTexture(saulTexture);
     mainGUI.AddCanvasElement(gb);
 
@@ -215,7 +231,7 @@ int main() {
         }
 	));
     gb3->SetTexture(whiteTexture);
-    //gb3->transform.position.z = 1.0f;
+    gb3->transform.position.z = 1.0f;
     mainGUI.AddCanvasElement(gb3);
 
     GUICanvas* bg = new GUICanvas();

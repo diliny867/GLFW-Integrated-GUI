@@ -66,6 +66,7 @@
     <ClInclude Include="src\GUI\GUISystem.h" />
     <ClInclude Include="src\GUI\GUITransform.h" />
     <ClInclude Include="src\InputManager.h" />
+    <ClInclude Include="src\uniqueue.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

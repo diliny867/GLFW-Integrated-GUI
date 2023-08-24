@@ -251,6 +251,7 @@ void GUICanvas::updateSizesRecursive(const Side side) {
 		default:
 			break;
 		}
+		sideSnap.canvas->MarkDirty();
 	}
 }
 /*
@@ -415,6 +416,16 @@ void GUICanvas::SetTexture(Texture2D* texture_) {
 
 glm::mat4 GUICanvas::GetDrawModelMatrix() const {
 	return model*localViewTransformMat4;
+}
+
+void GUICanvas::SetLayer(const GUILayer layer_) {
+	if(layer_>LAYER_MAX) {
+		return;
+	}
+	layer = layer_;
+}
+GUILayer GUICanvas::GetLayer() const {
+	return layer;
 }
 
 void GUICanvas::Undirty() {

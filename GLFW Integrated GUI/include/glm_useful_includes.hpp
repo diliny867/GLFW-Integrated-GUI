@@ -11,24 +11,33 @@
 namespace glm
 {
 	template<typename T,qualifier Q>
-	GLM_FUNC_QUALIFIER mat<4,4,T,Q> rotateAroundPivot(mat<4,4,T,Q> const& m,T angle,vec<3,T,Q> const& v,vec<3,T,Q> const& p)
+	GLM_FUNC_QUALIFIER mat<4,4,T,Q> rotateAroundPivot(const mat<4,4,T,Q>& m, T angle, const vec<3,T,Q>& axis, const vec<3,T,Q>& p)
 	{
-		const qua<T,Q> q = rotate(quat_identity<T,Q>(), angle, v);
-
+		const qua<T,Q> q = rotate(quat_identity<T,Q>(), angle, axis);
 		const vec<3,T,Q> offset= (p+1.0f)*0.5f; //idk
-
-		const mat<4,4,T,Q> rot = (glm::translate(glm::mat4_cast(q),-offset));
-		const mat<4,4,T,Q> tBackMat = glm::translate(glm::mat4(1.0f),offset);
-		return tBackMat*(m*rot);
+		const mat<4,4,T,Q> rotMat = translate(mat4_cast(q), -offset);
+		const mat<4,4,T,Q> tBackMat = translate(mat4(1.0f), offset);
+		return tBackMat*(m*rotMat);
 	}
 
 	template<typename T,qualifier Q>
-	GLM_FUNC_QUALIFIER mat<4,4,T,Q> rotateAroundPivot(mat<4,4,T,Q> const& m,qua<T,Q> const& q,vec<3,T,Q> const& p)
+	GLM_FUNC_QUALIFIER mat<4,4,T,Q> rotateAroundPivot(const mat<4,4,T,Q>& m, const qua<T,Q>& q, const vec<3,T,Q>& p)
 	{
 		const vec<3,T,Q> offset= (p+1.0f)*0.5f; //idk
-		const mat<4,4,T,Q> rot = (glm::translate(glm::mat4_cast(q),-offset));
-		const mat<4,4,T,Q> tBackMat = glm::translate(glm::mat4(1.0f),offset);
+		const mat<4,4,T,Q> rotMat = translate(mat4_cast(q), -offset);
+		const mat<4,4,T,Q> tBackMat = translate(mat4(1.0f), offset);
 
-		return m*rot;
+		return tBackMat*(m*rotMat);
+	}
+
+	template<typename T,qualifier Q>
+	GLM_FUNC_QUALIFIER mat<4,4,T,Q> rotateAroundCenter(const mat<4,4,T,Q>& m, T angle, const vec<3,T,Q>& axis)
+	{
+		const qua<T,Q> q = rotate(quat_identity<T,Q>(), angle, axis);
+		constexpr vec<3,T,Q> offset= vec3(0.5f);
+		const mat<4,4,T,Q> rotMat = translate(mat4_cast(q), -offset);
+		const mat<4,4,T,Q> tBackMat = translate(mat4(1.0f), offset);
+
+		return tBackMat*(m*rotMat);
 	}
 }

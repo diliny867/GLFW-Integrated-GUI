@@ -31,7 +31,7 @@ GLFWwindow* GUISystem::GetWindow() const {
 void GUISystem::AddCanvasElement(GUICanvas* element) {
 	element->guiSystem = this;
 	element->MarkDirty();
-	guiElements.push_back(element);
+	guiElements.Insert(element,[](const GUICanvas* l,const GUICanvas* r)->bool{return l->GetLayer()<r->GetLayer();});
 }
 
 void GUISystem::EnableLayerChecks(const GUILayer layer) {
@@ -41,7 +41,8 @@ void GUISystem::DisableLayerChecks(const GUILayer layer) {
 	activeCheckedLayers.erase(layer);
 }
 bool GUISystem::IsLayerChecksEnabled(const GUILayer layer) const {
-	return activeCheckedLayers.count(layer)>0 && (hiddenLayerChecks || hiddenLayers.count(layer)==0);
+	//return allLayersEnabled || (activeCheckedLayers.count(layer)>0 && (hiddenLayerChecks || hiddenLayers.count(layer)==0));
+	return layerFlags&GUI_LAYER_FLAG_ALL_LAYERS_ENABLED || (activeCheckedLayers.count(layer)>0 && (layerFlags&GUI_LAYER_FLAG_HIDDEN_LAYER_CHECKS || hiddenLayers.count(layer)==0));
 }
 
 void GUISystem::HideLayer(const GUILayer layer) {
@@ -54,14 +55,30 @@ bool GUISystem::IsLayerHidden(const GUILayer layer) const {
 	return hiddenLayers.count(layer)>0;
 }
 
+void GUISystem::EnableLayerFlags(const unsigned flags) {
+	layerFlags|=flags;
+}
+void GUISystem::DisableLayerFlags(const unsigned flags) {
+	layerFlags&=~flags;
+}
+void GUISystem::ToggleLayerFlags(const unsigned flags) {
+	//const unsigned int tmp = (layerFlags^flags)&flags; //to activate
+	//layerFlags&=~(layerFlags&flags); //to deactivate
+	//layerFlags|=tmp;
+
+	layerFlags = (layerFlags&~(layerFlags&flags))|((layerFlags^flags)&flags);
+}
+unsigned GUISystem::GetLayerFlags() const {
+	return layerFlags;
+}
 
 
-void GUISystem::SetClickDetectionUnderLayer(const bool enabled) {
-	clickDetectUnderLayer = enabled;
-}
-void GUISystem::SetHiddenLayerChecks(const bool enabled) {
-	hiddenLayerChecks = enabled;
-}
+//void GUISystem::SetClickDetectionUnderLayer(const bool enabled) {
+//	clickDetectUnderLayer = enabled;
+//}
+//void GUISystem::SetHiddenLayerChecks(const bool enabled) {
+//	hiddenLayerChecks = enabled;
+//}
 
 void GUISystem::Init(GLFWwindow* window_) {
 	window = window_;
@@ -99,7 +116,7 @@ void GUISystem::Init(GLFWwindow* window_) {
 	VAO::addAttrib(canvasVAO,1,2,GL_FLOAT,GL_FALSE,4*sizeof(float),(void*)(2*sizeof(float)));
 	VAO::unbind();
 
-	projection = glm::ortho(0.0f,(float)screenSize.x,(float)screenSize.y,0.0f,-1000.0f,1000.0f);
+	projection = glm::ortho(0.0f,(float)screenSize.x,(float)screenSize.y,0.0f,DEPTH_MIN,DEPTH_MAX);
 	model = glm::mat4(1.0f);
 
 	mainFramebuffeShader = new Shader("resources/shaders/GUI/mainFBOShader_vs.glsl","resources/shaders/GUI/mainFBOShader_fs.glsl");
@@ -121,59 +138,49 @@ void GUISystem::Init(GLFWwindow* window_) {
 }
 
 void GUISystem::checkActivateAllEventListeners() const {
-	if(clickDetectUnderLayer) {
-		for(const auto& element: guiElements) {
-			if(!IsLayerChecksEnabled(element->layer)) {
-				continue;
+	if(layerFlags&GUI_LAYER_FLAG_CLICK_DETECT_UNDER_LAYER) {
+		guiElements.Traverse([](const GUICanvas* element) {
+			if(!element->guiSystem->IsLayerChecksEnabled(element->GetLayer())) {
+				return;
 			}
-			for(const auto& listener: element->listeners) {
+			for(const auto listener: element->listeners) {
 				if(listener->Check()) {
 					listener->OnActivate();
-				}else {
+				} else {
 					listener->OnNotActive();
 				}
 			}
-		}
+		});
 	}else {
-		std::vector<EventListener*> unactiveListeners;
-		std::vector<EventListener*> topListeners;
-		GUILayer topLayer = INT_MIN;
-		for(const auto& element: guiElements) {
-			if(!IsLayerChecksEnabled(element->layer)) {
-				continue;
-			}
-			for(const auto& listener: element->listeners) {
-				if(listener->Check()) {
-					if(element->layer>=topLayer) {
-						if(element->layer!=topLayer) {
-							topListeners.clear();
-						}
-						topListeners.push_back(listener);
-						topLayer = element->layer;
+		GUILayer topLayer = LAYER_MIN;
+		for(auto rit = guiElements.rbegin();rit!=guiElements.rend();++rit){
+			const GUICanvas* element = *rit;
+			if(element->GetLayer()>=topLayer) {
+				for(const auto listener: element->listeners) {
+					if(listener->Check()) {
+						listener->OnActivate();
+						topLayer = element->GetLayer();
+					} else {
+						listener->OnNotActive();
 					}
-				}else {
-					unactiveListeners.push_back(listener);
 				}
 			}
-		}
-		for(const auto& listener: topListeners) {
-			listener->OnActivate();
-		}
-		for(const auto& listener: unactiveListeners) {
-			listener->OnNotActive();
 		}
 	}
 }
 
 void GUISystem::updateViewAllGuiElements() const {
-	for(const auto& element: guiElements) {
+	//int a = 0;
+	for(const auto element: guiElements) {
+		//std::cout<<a++<<" ";
 		element->UpdateView();
 	}
+	//std::cout<<"\n";
 }
 
 void GUISystem::updateOnScreenSizeChange() {
 	FBO::bind(mainFramebuffer);
-	projection = glm::ortho(0.0f,(float)screenSize.x,(float)screenSize.y,0.0f,-1000.0f,1000.0f);
+	projection = glm::ortho(0.0f,(float)screenSize.x,(float)screenSize.y,0.0f,DEPTH_MIN,DEPTH_MAX);
 	canvasShader->use();
 	canvasShader->setMat4("projection",projection);
 	colorShader->use();
@@ -199,7 +206,7 @@ void GUISystem::rerenderToFramebuffer() const {
 	//EBO::bind(quadEBO);
 	canvasShader->use();
 	for(const auto& element: guiElements) { //?sort by layer, draw without depth test
-		if(hiddenLayers.count(element->layer)>0 || element->texture == nullptr){ continue; }
+		if(hiddenLayers.count(element->GetLayer())>0 || element->texture == nullptr){ continue; }
 		canvasShader->setMat4("model",element->GetDrawModelMatrix());
 		canvasShader->setVec4("colorTint",element->viewData.colorTint);
 		element->texture->activate(0);
@@ -211,7 +218,7 @@ void GUISystem::rerenderToFramebuffer() const {
 		//glDisable(GL_DEPTH_TEST);
 		const BoundingBox bb = element->GetBoundingBox();
 		glm::mat4 mat = glm::mat4(1.0f);
-		mat = glm::translate(mat,glm::vec3(bb.GetPosition(),1000.0f));
+		mat = glm::translate(mat,glm::vec3(bb.GetPosition(),DEPTH_MAX));
 		mat = glm::scale(mat,glm::vec3(bb.GetSize(),0.0f));
 		colorShader->use();
 		colorShader->setMat4("model",mat);
@@ -245,7 +252,6 @@ void GUISystem::NewFrame() {
 	}
 
 	checkActivateAllEventListeners();
-	updateViewAllGuiElements();
 
 	int screenX = 0;
 	int screenY = 0;
@@ -264,6 +270,7 @@ void GUISystem::NewFrame() {
 	}
 
 	if(dirty) {
+		updateViewAllGuiElements();
 		rerenderToFramebuffer();
 	}
 

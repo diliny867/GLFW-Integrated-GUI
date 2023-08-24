@@ -20,7 +20,7 @@ public:
 
 	glm::mat4 ToMat4(const int layer) const {
 		const glm::mat4 rotMat = (glm::translate(glm::mat4_cast(rotation),-glm::vec3(0.5f,0.5f,0.0f)));
-		return glm::scale(glm::translate(glm::mat4(1.0f),glm::vec3(position.x,position.y,position.z/FLT_MAX+(float)layer)),size) * rotMat;
+		return glm::scale(glm::translate(glm::mat4(1.0f),glm::vec3(position.x,position.y,position.z/DEPTH_MAX+(float)layer)),size) * rotMat;
 	}
 	glm::mat4 ToMat4() const {
 		return ToMat4(0);

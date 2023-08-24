@@ -163,5 +163,8 @@
     <ClInclude Include="include\glm_useful_includes.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\BinaryTree.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

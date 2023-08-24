@@ -61,9 +61,8 @@ protected:
 	void notifyAllSnappedToThis();
 	void updateBoundingBox();
 	BoundingBox boundingBox;
-public:
-
 	GUILayer layer=0;
+public:
 
 	glm::mat4 model = glm::mat4(1.0f);
 
@@ -100,5 +99,7 @@ public:
 	void SetTexture(const char* path);
 	void SetTexture(Texture2D* texture_);
 	glm::mat4 GetDrawModelMatrix() const;
+	void SetLayer(const GUILayer layer_);
+	GUILayer GetLayer() const;
 	void Undirty();
 };

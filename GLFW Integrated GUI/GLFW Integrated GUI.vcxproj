@@ -57,6 +57,7 @@
     <ClInclude Include="include\GL\VAO.h" />
     <ClInclude Include="include\GL\VBO.h" />
     <ClInclude Include="include\Time.h" />
+    <ClInclude Include="src\BinaryTree.h" />
     <ClInclude Include="src\GUI\BoundingBox.h" />
     <ClInclude Include="src\GUI\EventListener.h" />
     <ClInclude Include="src\GUI\GUICanvas.h" />

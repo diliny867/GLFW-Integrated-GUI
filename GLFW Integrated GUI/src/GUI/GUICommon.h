@@ -4,6 +4,11 @@
 
 typedef int GUILayer;
 
+constexpr GUILayer LAYER_MAX = 1000;
+constexpr GUILayer LAYER_MIN = -1000;
+constexpr float DEPTH_MAX = (float)LAYER_MAX;
+constexpr float DEPTH_MIN = (float)LAYER_MIN;
+
 inline glm::vec2 minMaxFrom4(const float a,const float b,const float c,const float d) {
 	const float min1 = (a < b) ? a : b;
 	const float min2 = (c < d) ? c : d;

@@ -77,11 +77,11 @@ int main() {
     InputManager::mouse.posX = SCR_WIDTH/2;
     InputManager::mouse.posY = SCR_HEIGHT/2;
 
-    glm::mat4 projection = glm::ortho(0.0f,SCR_WIDTH,SCR_HEIGHT,0.0f,-1000.0f,1000.0f);
+    glm::mat4 projection = glm::ortho(0.0f,SCR_WIDTH,SCR_HEIGHT,0.0f,DEPTH_MIN,DEPTH_MAX);
     glm::mat4 model = glm::mat4(1.0f);
 
     shader_viewpoint_callback = [&]() {
-        projection = glm::ortho(0.0f,SCR_WIDTH,SCR_HEIGHT,0.0f,-1000.0f,1000.0f);
+        projection = glm::ortho(0.0f,SCR_WIDTH,SCR_HEIGHT,0.0f,DEPTH_MIN,DEPTH_MAX);
     };
 
     Texture2D* saulTexture = new Texture2D("resources/saul_3d.jpg",TextureType::Diffuse);
@@ -89,9 +89,12 @@ int main() {
     Texture2D* earthBurnTexture = new Texture2D("resources/earth_burn.png",TextureType::Diffuse);
     Texture2D* whiteTexture = new Texture2D("resources/white.png",TextureType::Diffuse);
     Texture2D* vesselsBgTexture = new Texture2D("resources/vessels_bg.png",TextureType::Diffuse);
-
+    
     mainGUI.Init(window);
-    mainGUI.SetClickDetectionUnderLayer(false);
+    mainGUI.EnableLayerFlags(GUI_LAYER_FLAG_ALL_LAYERS_ENABLED);
+    mainGUI.DisableLayerFlags(GUI_LAYER_FLAG_CLICK_DETECT_UNDER_LAYER);
+    //mainGUI.SetClickDetectionUnderLayer(false);
+    //mainGUI.allLayersEnabled = true;
 
     GUICanvas* exitButton = new GUICanvas(0,0,50,50);
     exitButton->AddListener(new EventListener(
@@ -113,7 +116,7 @@ int main() {
 			constexpr float sizeOffset = (1.0f-sizeChange)/2.0f;
             element->localViewTransformMat4 = glm::translate(glm::mat4(1.0f),glm::vec3(sizeOffset,sizeOffset,0.0f));
             element->localViewTransformMat4 = glm::scale(element->localViewTransformMat4,glm::vec3(sizeChange,sizeChange,1.0f));
-            element->localViewTransformMat4 = glm::rotateAroundPivot(element->localViewTransformMat4,exitButtonAngle,glm::vec3(0.0f,0.0f,1.0f),glm::vec3(0.0f)); //0, because its local view transform mat4
+            element->localViewTransformMat4 = glm::rotateAroundCenter(element->localViewTransformMat4,exitButtonAngle,glm::vec3(0.0f,0.0f,1.0f));
             exitButtonAngle += 0.001f;
             element->MarkDirty();
         },
@@ -121,7 +124,7 @@ int main() {
             GUICanvas* element = el->guiElement;
             if(element->localViewTransformMat4 != glm::mat4(1.0f)){
                 element->localViewTransformMat4 = glm::mat4(1.0f);
-                element->localViewTransformMat4 = glm::rotateAroundPivot(element->localViewTransformMat4,exitButtonAngle,glm::vec3(0.0f,0.0f,1.0f),glm::vec3(0.0f));
+                element->localViewTransformMat4 = glm::rotateAroundCenter(element->localViewTransformMat4,exitButtonAngle,glm::vec3(0.0f,0.0f,1.0f));
                 element->MarkDirty();
             }
         },
@@ -132,8 +135,7 @@ int main() {
     exitButton->SetSnap(GUICanvas::RIGHT,GUICanvas::SideSnap::DRAG,GUICanvas::SideSnap::WINDOW);
     exitButton->SetSnap(GUICanvas::TOP,GUICanvas::SideSnap::DRAG,GUICanvas::SideSnap::WINDOW);
     exitButton->SetTexture(earthBurnTexture);
-    exitButton->layer = 1;
-    mainGUI.EnableLayerChecks(1);
+    exitButton->SetLayer(1);
     mainGUI.AddCanvasElement(exitButton);
 
     GUICanvas* gb = new GUICanvas(0,0,400,400);
@@ -181,6 +183,7 @@ int main() {
     gb2->SetTexture(sillyTexture);
     gb2->SetSnap(GUICanvas::LEFT,GUICanvas::SideSnap::SCALE,GUICanvas::SideSnap::CANVAS,gb);
     gb2->SetSnap(GUICanvas::RIGHT,GUICanvas::SideSnap::SCALE,GUICanvas::SideSnap::WINDOW);
+    gb2->SetLayer(-1);
     mainGUI.AddCanvasElement(gb2);
 
     GUICanvas* gb3 = new GUICanvas(600,400,100,100);
@@ -212,6 +215,7 @@ int main() {
         }
 	));
     gb3->SetTexture(whiteTexture);
+    //gb3->transform.position.z = 1.0f;
     mainGUI.AddCanvasElement(gb3);
 
     GUICanvas* bg = new GUICanvas();
@@ -221,8 +225,9 @@ int main() {
     bg->SetSnap(GUICanvas::BOTTOM,GUICanvas::SideSnap::SCALE,GUICanvas::SideSnap::WINDOW);
     bg->SetTexture(vesselsBgTexture);
     bg->viewData.colorTint = glm::vec4(glm::vec3(0.3f),1.0f);
-    mainGUI.AddCanvasElement(bg);
+    //mainGUI.AddCanvasElement(bg);
 
+    //mainGUI.guiElements.Traverse([](const GUICanvas* c){std::cout<<c->GetLayer()<<" ";});
 
     //glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
 

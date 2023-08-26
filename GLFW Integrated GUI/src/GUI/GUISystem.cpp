@@ -37,6 +37,12 @@ void GUISystem::AddCanvasElement(GUICanvas* element) {
 	
 	//guiElements.Insert(element,[](const GUICanvas* l,const GUICanvas* r)->bool{return l->GetLayer()<r->GetLayer();});
 }
+void GUISystem::RemoveCanvasElement(const GUICanvas* element) {
+	auto at = std::find(guiElements.begin(),guiElements.end(),element);
+	if(at!=guiElements.end()){
+		guiElements.erase(at);
+	}
+}
 
 void GUISystem::EnableLayerChecks(const GUILayer layer) {
 	activeCheckedLayers.insert(layer);
@@ -45,7 +51,6 @@ void GUISystem::DisableLayerChecks(const GUILayer layer) {
 	activeCheckedLayers.erase(layer);
 }
 bool GUISystem::IsLayerChecksEnabled(const GUILayer layer) const {
-	//return allLayersEnabled || (activeCheckedLayers.count(layer)>0 && (hiddenLayerChecks || hiddenLayers.count(layer)==0));
 	return layerFlags&GUI_LAYER_FLAG_ALL_LAYERS_ENABLED || (activeCheckedLayers.count(layer)>0 && (layerFlags&GUI_LAYER_FLAG_HIDDEN_LAYER_CHECKS || hiddenLayers.count(layer)==0));
 }
 

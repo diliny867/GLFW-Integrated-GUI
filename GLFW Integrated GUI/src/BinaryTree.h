@@ -99,7 +99,7 @@ struct BinNode {
 		}
 		return false;
 	}
-	bool Contains(T data_) {
+	bool Contains(T data_) const {
 		if(data == data_) {
 			return true;
 		}
@@ -179,7 +179,7 @@ public:
 		}
 		root->Remove(data);
 	}
-	bool Contains(T data) {
+	bool Contains(T data) const {
 		if(root == nullptr){ return false; }
 		return root->Contains(data);
 	}

@@ -33,9 +33,9 @@
 //#define BB_CHECK_TRANSFORM_FOR_CLICK
 #define DRAW_BOUNDING_BOXES
 
-#define GUI_LAYER_FLAG_ALL_LAYERS_ENABLED 1<<0
-#define GUI_LAYER_FLAG_CLICK_DETECT_UNDER_LAYER 1<<1
-#define GUI_LAYER_FLAG_HIDDEN_LAYER_CHECKS 1<<2
+constexpr unsigned int GUI_LAYER_FLAG_ALL_LAYERS_ENABLED = 1<<0;
+constexpr unsigned int GUI_LAYER_FLAG_CLICK_DETECT_UNDER_LAYER = 1<<1;
+constexpr unsigned int GUI_LAYER_FLAG_HIDDEN_LAYER_CHECKS = 1<<2;
 
 class GUISystem {
 public:
@@ -43,7 +43,9 @@ public:
 		DISABLED,
 		ACTIVE
 	};
-//private:
+private:
+	friend GUICanvas;
+
 	GlobalState state;
 	GLFWwindow* window;
 
@@ -76,10 +78,6 @@ public:
 	std::unordered_set<GUILayer> activeCheckedLayers;
 	std::unordered_set<GUILayer> hiddenLayers;
 
-	//bool clickDetectUnderLayer = true;
-	//bool hiddenLayerChecks = false;
-	//bool allLayersEnabled = true;
-
 	unsigned int layerFlags = GUI_LAYER_FLAG_ALL_LAYERS_ENABLED | GUI_LAYER_FLAG_CLICK_DETECT_UNDER_LAYER;
 
 	void checkActivateAllEventListeners() const;
@@ -103,6 +101,7 @@ public:
 	GLFWwindow* GetWindow() const;
 
 	void AddCanvasElement(GUICanvas* element);
+	void RemoveCanvasElement(const GUICanvas* element);
 
 	void EnableLayerChecks(const GUILayer layer);
 	void DisableLayerChecks(const GUILayer layer);
@@ -115,9 +114,6 @@ public:
 	void DisableLayerFlags(unsigned int flags);
 	void ToggleLayerFlags(unsigned int flags);
 	unsigned int GetLayerFlags() const;
-
-	//void SetClickDetectionUnderLayer(const bool enabled);
-	//void SetHiddenLayerChecks(const bool enabled);
 
 	void Init(GLFWwindow* window_);
 

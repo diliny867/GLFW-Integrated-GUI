@@ -40,4 +40,14 @@ namespace glm
 
 		return tBackMat*(m*rotMat);
 	}
+
+	template<typename T,qualifier Q>
+	GLM_FUNC_QUALIFIER mat<4,4,T,Q> rotateAroundCenter(const mat<4,4,T,Q>& m, const qua<T,Q>& q)
+	{
+		constexpr vec<3,T,Q> offset= vec3(0.5f);
+		const mat<4,4,T,Q> rotMat = translate(mat4_cast(q), -offset);
+		const mat<4,4,T,Q> tBackMat = translate(mat4(1.0f), offset);
+
+		return tBackMat*(m*rotMat);
+	}
 }

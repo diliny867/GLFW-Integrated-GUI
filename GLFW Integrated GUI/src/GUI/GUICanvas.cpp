@@ -46,18 +46,18 @@ void GUICanvas::SetSnap(const Side side,const SideSnap::SnapType sideSnapType,co
 	MarkDirty();
 }
 void GUICanvas::SetSnap(const Side side,const SideSnap::SnapType sideSnapType,const SideSnap::SnapState sideSnapState,GUICanvas* sideSnap) {
-	if(sideSnap == this){ return; }
+	if(sideSnap == this || sideSnapState != SideSnap::CANVAS){ return; }
 	const SideSnap newSnap = SideSnap(sideSnapState,sideSnapType,sideSnap);
 	const int snapIndex = sideToIndex(side);
 	if(sideSnaps[snapIndex] == newSnap) {
 		return;
 	}
 	sideSnaps[snapIndex] = newSnap;
-	sideSnap->snappedToThis.push_back(this);
+	sideSnap->snappedToThis.emplace(this);
 	MarkDirty();
 }
 void GUICanvas::notifyAllSnappedToThis() {
-	for(const auto& snap: snappedToThis) {
+	for(const auto snap: snappedToThis) {
 		snap->MarkDirty();
 	}
 	//for(const auto& snap: snappedToThis) {
@@ -254,7 +254,7 @@ void GUICanvas::updateSizesRecursive(const Side side) {
 			break;
 		}
 		if(tr!=transform){ //or else (bad things)
-			sideSnap.canvas->MarkDirty();
+			//sideSnap.canvas->MarkDirty();
 		}
 	}
 }
@@ -426,7 +426,14 @@ void GUICanvas::SetLayer(const GUILayer layer_) {
 	if(layer_>LAYER_MAX) {
 		return;
 	}
+	if(guiSystem==nullptr) {
+		layer = layer_;
+		return;
+	}
+	guiSystem->RemoveCanvasElement(this);
 	layer = layer_;
+	guiSystem->AddCanvasElement(this);
+
 }
 GUILayer GUICanvas::GetLayer() const {
 	return layer;

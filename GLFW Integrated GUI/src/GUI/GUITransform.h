@@ -4,6 +4,7 @@
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include "../../include/glm_useful_includes.hpp"
 
 #include "BoundingBox.h"
 #include "GUICommon.h"
@@ -26,15 +27,15 @@ public:
 		return ToMat4(0);
 	}
 
-	bool ContainsPoint(const float pointX, const float pointY) const { //this is broken
-		const glm::vec2 translatedPoint = glm::vec2(pointX,pointY) - GetMin();
-		glm::vec2 rotatedPoint = glm::vec2(rotation * glm::vec3(translatedPoint,0.0f));
-		return rotatedPoint.x >= 0 && rotatedPoint.x <= size.x && rotatedPoint.y >= 0 && rotatedPoint.y <= size.y;
+	bool ContainsPoint(const float pointX,const float pointY) const {
+		glm::vec2 translatedPoint = glm::vec2(pointX,pointY) - glm::vec2(position.x,position.y);
+		glm::vec2 rotatedPoint = glm::inverse(rotation) * glm::vec3(translatedPoint,0.0f);
+		const float halfWidth = size.x * 0.5f;
+		const float halfHeight = size.y * 0.5f;
+		return rotatedPoint.x >= -halfWidth && rotatedPoint.x <= halfWidth && rotatedPoint.y >= -halfHeight && rotatedPoint.y <= halfHeight;
 	}
 	bool ContainsPoint(const glm::vec2& point) const {
-		const glm::vec2 translatedPoint = point - GetMin();
-		glm::vec2 rotatedPoint = glm::vec2(rotation * glm::vec3(translatedPoint,0.0f));
-		return rotatedPoint.x >= 0 && rotatedPoint.x <= size.x && rotatedPoint.y >= 0 && rotatedPoint.y <= size.y;
+		return ContainsPoint(point.x,point.y);
 	}
 
 	float GetX1() const {

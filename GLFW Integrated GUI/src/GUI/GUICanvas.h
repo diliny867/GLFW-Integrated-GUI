@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <functional>
+#include <unordered_set>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -71,7 +72,7 @@ public:
 	GUITransform transform;
 
 	SideSnap sideSnaps[4];
-	std::vector<GUICanvas*> snappedToThis;
+	std::unordered_set<GUICanvas*> snappedToThis;
 
 	std::vector<EventListener*> listeners;
 

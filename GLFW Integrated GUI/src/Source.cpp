@@ -96,137 +96,118 @@ int main() {
     //mainGUI.SetClickDetectionUnderLayer(false);
     //mainGUI.allLayersEnabled = true;
 
-    GUICanvas* exitButton = new GUICanvas(0,0,50,50);
-    exitButton->AddListener(new EventListener(
-        EL_Check_SingleClick_Func,
-        [](EventListener* el)->void {
-        },
-        [&]() {
-            std::cout<<"Exiting...\n";
-            glfwSetWindowShouldClose(window,true);
-        }
-    ));
+    GUIButton* exitButton = new GUIButton(0,0,50,50);
+    exitButton->SetOnLeftMouseDown([&window](GUIObject* obj)->void {
+			std::cout<<"Exiting...\n";
+			glfwSetWindowShouldClose(window,true);
+    });
     float exitButtonAngle = 0.0f;
-    exitButton->AddListener(new EventListener(
-        EL_Check_OnHover_Func,
-        [&exitButtonAngle](const EventListener* el) {
-            GUICanvas* element = el->guiElement;
-
-			constexpr float sizeChange = 1.1f;
-			constexpr float sizeOffset = (1.0f-sizeChange)/2.0f;
-            element->localViewTransformMat4 = glm::translate(glm::mat4(1.0f),glm::vec3(sizeOffset,sizeOffset,0.0f));
-            element->localViewTransformMat4 = glm::scale(element->localViewTransformMat4,glm::vec3(sizeChange,sizeChange,1.0f));
-            element->localViewTransformMat4 = glm::rotateAroundCenter(element->localViewTransformMat4,exitButtonAngle,glm::vec3(0.0f,0.0f,1.0f));
-            exitButtonAngle += 0.001f;
-            element->MarkDirty();
-        },
-        [&exitButtonAngle](const EventListener* el) {
-            GUICanvas* element = el->guiElement;
-            if(element->localViewTransformMat4 != glm::mat4(1.0f)){
-                element->localViewTransformMat4 = glm::mat4(1.0f);
-                element->localViewTransformMat4 = glm::rotateAroundCenter(element->localViewTransformMat4,exitButtonAngle,glm::vec3(0.0f,0.0f,1.0f));
-                element->MarkDirty();
-            }
-        },
-        []() {
-            std::cout<<"HOVER\n";
+    exitButton->SetOnMouseHover([&exitButtonAngle](GUIObject* obj) {
+        constexpr float sizeChange = 1.1f;
+        constexpr float sizeOffset = (1.0f-sizeChange)/2.0f;
+        obj->localViewTransformMat4 = glm::translate(glm::mat4(1.0f),glm::vec3(sizeOffset,sizeOffset,0.0f));
+        obj->localViewTransformMat4 = glm::scale(obj->localViewTransformMat4,glm::vec3(sizeChange,sizeChange,1.0f));
+        obj->localViewTransformMat4 = glm::rotateAroundCenter(obj->localViewTransformMat4,exitButtonAngle,glm::vec3(0.0f,0.0f,1.0f));
+        exitButtonAngle += 0.001f;
+        obj->MarkDirty();
+        std::cout<<"HOVER\n";
+    });
+    exitButton->SetOnMouseHoverElse([&exitButtonAngle](GUIObject* obj) {
+        if(obj->localViewTransformMat4 != glm::mat4(1.0f)){
+            obj->localViewTransformMat4 = glm::mat4(1.0f);
+            obj->localViewTransformMat4 = glm::rotateAroundCenter(obj->localViewTransformMat4,exitButtonAngle,glm::vec3(0.0f,0.0f,1.0f));
+            obj->MarkDirty();
         }
-    ));
-    exitButton->SetSnap(GUICanvas::RIGHT,GUICanvas::SideSnap::DRAG,GUICanvas::SideSnap::WINDOW);
-    exitButton->SetSnap(GUICanvas::TOP,GUICanvas::SideSnap::DRAG,GUICanvas::SideSnap::WINDOW);
+    });
+    exitButton->SetSnap(GUIObject::RIGHT,GUIObject::SideSnap::DRAG,GUIObject::SideSnap::WINDOW);
+    exitButton->SetSnap(GUIObject::TOP,GUIObject::SideSnap::DRAG,GUIObject::SideSnap::WINDOW);
     exitButton->SetTexture(earthBurnTexture);
     exitButton->SetLayer(1);
     mainGUI.AddCanvasElement(exitButton);
 
-    GUICanvas* gb = new GUICanvas(0,0,400,400);
+    GUIButton* gb = new GUIButton(0,0,400,400);
     glm::vec2 saulMouseOffset = glm::vec2(0.0f);
+    //gb->SetOnLeftMouseDown([&](GUIObject* obj)->void {
+    //    //element->transform.size.x *= 0.95f;
+    //    //element->transform.size.y += 5;
+    //    saulMouseOffset = glm::vec2(InputManager::mouse.posX,InputManager::mouse.posY) - glm::vec2(obj->transform.position);
+    //    obj->MarkDirty();
+    //    std::cout<<"CLICK\n";
+    //});
+
     gb->AddListener(new EventListener(
-        EL_Check_SingleClick_Func,
-        [&](const EventListener* el)->void {
-            GUICanvas* element = el->guiElement;
+        EL_Check_MouseDownLMB_Func,
+        [&](GUIObject* obj)->void {
             //element->transform.size.x *= 0.95f;
 			//element->transform.size.y += 5;
-            saulMouseOffset = glm::vec2(InputManager::mouse.posX,InputManager::mouse.posY) - glm::vec2(element->transform.position);
-			element->MarkDirty();
-        },
-        []() {
+            saulMouseOffset = glm::vec2(InputManager::mouse.posX,InputManager::mouse.posY) - glm::vec2(obj->transform.position);
+            obj->MarkDirty();
             std::cout<<"CLICK\n";
         }
         ));
     gb->AddListener(new EventListener(
-        EL_Check_StartHereHoldUntilRelease_Func,
-        [&saulMouseOffset](const EventListener* el)->void {
-            GUICanvas* element = el->guiElement;
+        EL_Check_StartHereHoldUntilReleaseLMB_Func,
+        [&saulMouseOffset](GUIObject* obj)->void {
             const InputManager::Mouse& mouse = InputManager::mouse;
             const glm::vec2 mousePos = glm::vec2(mouse.posX,mouse.posY);
 
-            element->transform.position = glm::vec3(mousePos - saulMouseOffset,element->transform.position.z);
+            obj->transform.position = glm::vec3(mousePos - saulMouseOffset,obj->transform.position.z);
 
-            element->MarkDirty();
-        },
-        []() {
+            obj->MarkDirty();
         }
-        ));
+    ));
     //gb->SetSnap(GUICanvas::LEFT,GUICanvas::SideSnap::SCALE,GUICanvas::SideSnap::WINDOW);
     //gb->SetSnap(GUICanvas::TOP,GUICanvas::SideSnap::DRAG,GUICanvas::SideSnap::WINDOW);
     gb->SetTexture(saulTexture);
     mainGUI.AddCanvasElement(gb);
 
-    GUICanvas* gb2 = new GUICanvas(300,100,300,60);
+    GUIObject* gb2 = new GUIObject(300,100,300,60);
     gb2->AddListener(new EventListener(
-        EL_Check_StartHereHoldUntilRelease_Func,
-        [](const EventListener* el)->void {
+        EL_Check_StartHereHoldUntilReleaseLMB_Func,
+        [](GUIObject* obj)->void {
             const InputManager::Mouse& mouse = InputManager::mouse;
-            el->guiElement->transform.position.y += mouse.deltaY;
-            el->guiElement->MarkDirty();
-        },
-        []() {
+            obj->transform.position.y += mouse.deltaY;
+            obj->MarkDirty();
             std::cout<<"LEFT HOLD\n";
         }
         ));
     gb2->AddListener(new EventListener(
         EL_Check_StartHereHoldUntilReleaseRMB_Func,
-        [](const EventListener* el)->void {
+        [](GUIObject* obj)->void {
 			const InputManager::Mouse& mouse = InputManager::mouse;
             if(mouse.leftPress){ return; }
-            el->guiElement->transform.position.y += mouse.deltaY;
-            el->guiElement->MarkDirty();
-        },
-        []() {
+            obj->transform.position.y += mouse.deltaY;
+            obj->MarkDirty();
             std::cout<<"RIGHT HOLD\n";
         }
 		));
     gb2->SetTexture(sillyTexture);
-    gb2->SetSnap(GUICanvas::LEFT,GUICanvas::SideSnap::SCALE,GUICanvas::SideSnap::CANVAS,gb);
-    gb2->SetSnap(GUICanvas::RIGHT,GUICanvas::SideSnap::SCALE,GUICanvas::SideSnap::WINDOW);
+    gb2->SetSnap(GUIObject::LEFT,GUIObject::SideSnap::SCALE,GUIObject::SideSnap::CANVAS,gb);
+    gb2->SetSnap(GUIObject::RIGHT,GUIObject::SideSnap::SCALE,GUIObject::SideSnap::WINDOW);
     gb2->SetLayer(-1);
     mainGUI.AddCanvasElement(gb2);
 
-    GUICanvas* gb3 = new GUICanvas(600,400,100,100);
+    GUIObject* gb3 = new GUIObject(600,400,100,100);
     gb3->AddListener(new EventListener(
-		EL_Check_StartHereHoldUntilRelease_Func,
-        [](const EventListener* el)->void {
+		EL_Check_StartHereHoldUntilReleaseLMB_Func,
+        [](GUIObject* obj)->void {
             const InputManager::Mouse& mouse = InputManager::mouse;
-            el->guiElement->transform.position += glm::vec3(mouse.deltaX,mouse.deltaY,0.0f);
-            const glm::vec2 center = el->guiElement->transform.position;
-            el->guiElement->transform.rotation = glm::angleAxis(10.0f*(float)Time::deltaTime,glm::vec3(0.0f,0.0f,1.0f))*el->guiElement->transform.rotation;
-            el->guiElement->MarkDirty();
-        },
-        []() {
+            obj->transform.position += glm::vec3(mouse.deltaX,mouse.deltaY,0.0f);
+            const glm::vec2 center = obj->transform.position;
+            obj->transform.rotation = glm::angleAxis(10.0f*(float)Time::deltaTime,glm::vec3(0.0f,0.0f,1.0f))*obj->transform.rotation;
+            obj->MarkDirty();
             std::cout<<"LEFT HOLD\n";
         }
     ));
     gb3->AddListener(new EventListener(
         EL_Check_StartHereHoldUntilReleaseRMB_Func,
-        [](const EventListener* el)->void {
+        [](GUIObject* obj)->void {
             const InputManager::Mouse& mouse = InputManager::mouse;
             if(!mouse.leftPress) {
-                el->guiElement->transform.position += glm::vec3(mouse.deltaX,mouse.deltaY,0.0f);
+                obj->transform.position += glm::vec3(mouse.deltaX,mouse.deltaY,0.0f);
             }
-            el->guiElement->transform.rotation = glm::angleAxis(-10.0f*(float)Time::deltaTime,glm::vec3(0.0f,0.0f,1.0f))*el->guiElement->transform.rotation;
-            el->guiElement->MarkDirty();
-        },
-        []() {
+            obj->transform.rotation = glm::angleAxis(-10.0f*(float)Time::deltaTime,glm::vec3(0.0f,0.0f,1.0f))*obj->transform.rotation;
+            obj->MarkDirty();
             std::cout<<"RIGHT HOLD\n";
         }
 	));
@@ -234,11 +215,11 @@ int main() {
     gb3->transform.position.z = 1.0f;
     mainGUI.AddCanvasElement(gb3);
 
-    GUICanvas* bg = new GUICanvas();
-    bg->SetSnap(GUICanvas::LEFT,GUICanvas::SideSnap::SCALE,GUICanvas::SideSnap::WINDOW);
-    bg->SetSnap(GUICanvas::RIGHT,GUICanvas::SideSnap::SCALE,GUICanvas::SideSnap::WINDOW);
-    bg->SetSnap(GUICanvas::TOP,GUICanvas::SideSnap::SCALE,GUICanvas::SideSnap::WINDOW);
-    bg->SetSnap(GUICanvas::BOTTOM,GUICanvas::SideSnap::SCALE,GUICanvas::SideSnap::WINDOW);
+    GUIObject* bg = new GUIObject();
+    bg->SetSnap(GUIObject::LEFT,GUIObject::SideSnap::SCALE,GUIObject::SideSnap::WINDOW);
+    bg->SetSnap(GUIObject::RIGHT,GUIObject::SideSnap::SCALE,GUIObject::SideSnap::WINDOW);
+    bg->SetSnap(GUIObject::TOP,GUIObject::SideSnap::SCALE,GUIObject::SideSnap::WINDOW);
+    bg->SetSnap(GUIObject::BOTTOM,GUIObject::SideSnap::SCALE,GUIObject::SideSnap::WINDOW);
     bg->SetTexture(vesselsBgTexture);
     bg->viewData.colorTint = glm::vec4(glm::vec3(0.3f),1.0f);
     //mainGUI.AddCanvasElement(bg);

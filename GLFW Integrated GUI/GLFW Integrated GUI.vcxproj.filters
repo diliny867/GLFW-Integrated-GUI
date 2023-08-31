@@ -31,6 +31,9 @@
     <Filter Include="Header Files\GUI">
       <UniqueIdentifier>{48b0a147-711a-482a-bcfb-7eebc3568966}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\GUI\GUIObjects">
+      <UniqueIdentifier>{dd10b4c8-b033-48bf-a676-91a07e8c8b3d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Source.cpp">
@@ -48,7 +51,7 @@
     <ClCompile Include="include\GL\VBO.cpp">
       <Filter>Source Files\GL</Filter>
     </ClCompile>
-    <ClCompile Include="src\GUI\GUICanvas.cpp">
+    <ClCompile Include="src\GUI\GUIObject.cpp">
       <Filter>Source Files\GUI</Filter>
     </ClCompile>
     <ClCompile Include="src\GUI\EventListener.cpp">
@@ -77,6 +80,9 @@
     </ClCompile>
     <ClCompile Include="G:\Prog\Other\Cpp\External Libraries\OpenGL\glad.c">
       <Filter>Source Files\GL</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GUI\GUIObjects\GUIGenericInteractable.cpp">
+      <Filter>Source Files\GUI</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -142,9 +148,6 @@
     <ClInclude Include="src\GUI\EventListener.h">
       <Filter>Header Files\GUI</Filter>
     </ClInclude>
-    <ClInclude Include="src\GUI\GUICanvas.h">
-      <Filter>Header Files\GUI</Filter>
-    </ClInclude>
     <ClInclude Include="src\GUI\GUICommon.h">
       <Filter>Header Files\GUI</Filter>
     </ClInclude>
@@ -157,7 +160,7 @@
     <ClInclude Include="src\GUI\GUITransform.h">
       <Filter>Header Files\GUI</Filter>
     </ClInclude>
-    <ClInclude Include="src\GUI\GUICanvasViewData.h">
+    <ClInclude Include="src\GUI\GUIObjectViewData.h">
       <Filter>Header Files\GUI</Filter>
     </ClInclude>
     <ClInclude Include="include\glm_useful_includes.hpp">
@@ -168,6 +171,15 @@
     </ClInclude>
     <ClInclude Include="src\uniqueue.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GUI\GUIObject.h">
+      <Filter>Header Files\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GUI\GUIObjects\GUIButton.h">
+      <Filter>Header Files\GUI\GUIObjects</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GUI\GUIObjects\GUIGenericInteractable.h">
+      <Filter>Header Files\GUI\GUIObjects</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -1,34 +1,38 @@
-#include "GUICanvas.h"
+#include "GUIObject.h"
+
+#include "../../include/GL/Texture2D.h"
+#include "../../include/GL/Shader.h"
 
 #include "EventListener.h"
 #include "GUISystem.h"
 
 
-GUICanvas::GUICanvas():boundingBox(0,0,0,0),transform(boundingBox),guiSystem(nullptr) {
-	updateModelMatrix();
-}
-GUICanvas::GUICanvas(GUISystem* guiSystem_):boundingBox(0,0,0,0),transform(boundingBox),guiSystem(guiSystem_) {
-	updateModelMatrix();
-}
-//GUICanvas::GUICanvas(const double x, const double y, const double width, const double height):boundingBox(x,y,width,height),guiSystem(nullptr) {
-//	updateModelMatrix();
-//}
-//GUICanvas::GUICanvas(const double x,const double y,const double width,const double height,GUISystem*guiSystem_):boundingBox(x,y,width,height),guiSystem(guiSystem_) {
-//	updateModelMatrix();
-//}
-GUICanvas::GUICanvas(const float x,const float y,const float width,const float height):boundingBox(x,y,x+width,y+height),transform(boundingBox),guiSystem(nullptr) {
-	updateModelMatrix();
-}
-GUICanvas::GUICanvas(const float x,const float y,const float width,const float height,GUISystem* guiSystem_):boundingBox(x,y,x+width,y+height),transform(boundingBox),guiSystem(guiSystem_) {
+GUIObject::GUIObject():
+	GUIObject("",0,0,0,0,nullptr){}
+GUIObject::GUIObject(GUISystem* guiSystem_):
+	GUIObject("",0,0,0,0,guiSystem_) {}
+GUIObject::GUIObject(const float x,const float y,const float width,const float height):
+	GUIObject("",x,y,width,height,nullptr) {}
+GUIObject::GUIObject(const float x,const float y,const float width,const float height,GUISystem* guiSystem_):
+	GUIObject("",x,y,width,height,guiSystem_) {}
+
+GUIObject::GUIObject(const std::string& label_):
+	GUIObject(label_,0,0,0,0,nullptr) {}
+GUIObject::GUIObject(const std::string& label_,GUISystem* guiSystem_):
+	GUIObject(label_,0,0,0,0,guiSystem_){}
+GUIObject::GUIObject(const std::string& label_,const float x,const float y,const float width,const float height):
+	GUIObject(label_,x,y,width,height,nullptr){}
+GUIObject::GUIObject(const std::string& label_,const float x,const float y,const float width,const float height,GUISystem*guiSystem_):
+	label(label_), boundingBox(x,y,x+width,y+height), transform(boundingBox), guiSystem(guiSystem_) {
 	updateModelMatrix();
 }
 
-void GUICanvas::AddListener(EventListener*listener) {
+void GUIObject::AddListener(EventListener*listener) {
 	listener->guiElement = this;
 	listeners.push_back(listener);
 }
 
-bool GUICanvas::CheckClick(const float x,const float y) const {
+bool GUIObject::CheckClick(const float x,const float y) const {
 #ifdef BB_CHECK_TRANSFORM_FOR_CLICK
 	return boundingBox.ContainsPoint(x,y) && transform.ContainsPoint(x,y);
 #else
@@ -36,7 +40,7 @@ bool GUICanvas::CheckClick(const float x,const float y) const {
 #endif
 }
 
-void GUICanvas::SetSnap(const Side side,const SideSnap::SnapType sideSnapType,const SideSnap::SnapState sideSnapState) {
+void GUIObject::SetSnap(const Side side,const SideSnap::SnapType sideSnapType,const SideSnap::SnapState sideSnapState) {
 	const SideSnap newSnap = SideSnap(sideSnapState,sideSnapType);
 	const int snapIndex = sideToIndex(side);
 	if(sideSnaps[snapIndex] == newSnap) {
@@ -45,7 +49,7 @@ void GUICanvas::SetSnap(const Side side,const SideSnap::SnapType sideSnapType,co
 	sideSnaps[snapIndex] = newSnap;
 	MarkDirty();
 }
-void GUICanvas::SetSnap(const Side side,const SideSnap::SnapType sideSnapType,const SideSnap::SnapState sideSnapState,GUICanvas* sideSnap) {
+void GUIObject::SetSnap(const Side side,const SideSnap::SnapType sideSnapType,const SideSnap::SnapState sideSnapState,GUIObject* sideSnap) {
 	if(sideSnap == this || sideSnapState != SideSnap::CANVAS){ return; }
 	const SideSnap newSnap = SideSnap(sideSnapState,sideSnapType,sideSnap);
 	const int snapIndex = sideToIndex(side);
@@ -56,7 +60,7 @@ void GUICanvas::SetSnap(const Side side,const SideSnap::SnapType sideSnapType,co
 	sideSnap->snappedToThis.emplace(this);
 	MarkDirty();
 }
-void GUICanvas::notifyAllSnappedToThis() {
+void GUIObject::notifyAllSnappedToThis() {
 	for(const auto snap: snappedToThis) {
 		snap->MarkDirty();
 	}
@@ -65,7 +69,7 @@ void GUICanvas::notifyAllSnappedToThis() {
 	//}
 }
 
-GUICanvas::Side GUICanvas::indexToSide(const int index) {
+GUIObject::Side GUIObject::indexToSide(const int index) {
 	switch(index) {
 	case 0:
 		return LEFT;
@@ -79,7 +83,7 @@ GUICanvas::Side GUICanvas::indexToSide(const int index) {
 		return UNKNOWN;
 	}
 }
-int GUICanvas::sideToIndex(const Side side) {
+int GUIObject::sideToIndex(const Side side) {
 	switch(side) {
 	case LEFT:
 		return 0;
@@ -94,18 +98,18 @@ int GUICanvas::sideToIndex(const Side side) {
 	}
 }
 
-void GUICanvas::MarkDirty() {
+void GUIObject::MarkDirty() {
 	dirty = true;
 	if(guiSystem!=nullptr){
 		guiSystem->MarkDirty();
 		guiSystem->updateQueue.insert(this);
 	}
 }
-bool GUICanvas::IsDirty() const {
+bool GUIObject::IsDirty() const {
 	return dirty;
 }
 
-void GUICanvas::updateSizesRecursive(const Side side) {
+void GUIObject::updateSizesRecursive(const Side side) {
 	//TODO: add check if snaps are identical or cyclic
 	 const SideSnap sideSnap = sideSnaps[sideToIndex(side)];
 	if(sideSnap.state == SideSnap::NO_SNAP || side == UNKNOWN) {
@@ -378,7 +382,7 @@ void GUICanvas::updateSizesRecursive(const Side side) {
 }
  */
 
-void GUICanvas::updateSizesRecursive() {
+void GUIObject::updateSizesRecursive() {
 	if(!dirty) {
 		return;
 	}
@@ -397,13 +401,13 @@ void GUICanvas::updateSizesRecursive() {
 }
 
 
-void GUICanvas::updateWhenDirty() {
+void GUIObject::updateWhenDirty() {
 	updateSizesRecursive();
 	updateBoundingBox();
 	updateModelMatrix();
 }
 
-void GUICanvas::UpdateView() {
+void GUIObject::UpdateView() {
 	if(dirty) {
 		updateWhenDirty();
 		notifyAllSnappedToThis();
@@ -411,18 +415,18 @@ void GUICanvas::UpdateView() {
 	}
 }
 
-void GUICanvas::SetTexture(const char* path) {
+void GUIObject::SetTexture(const char* path) {
 	texture = new Texture2D(path,TextureType::Diffuse);
 }
-void GUICanvas::SetTexture(Texture2D* texture_) {
+void GUIObject::SetTexture(Texture2D* texture_) {
 	texture = texture_;
 }
 
-glm::mat4 GUICanvas::GetDrawModelMatrix() const {
+glm::mat4 GUIObject::GetDrawModelMatrix() const {
 	return model*localViewTransformMat4;
 }
 
-void GUICanvas::SetLayer(const GUILayer layer_) {
+void GUIObject::SetLayer(const GUILayer layer_) {
 	if(layer_>LAYER_MAX) {
 		return;
 	}
@@ -435,25 +439,25 @@ void GUICanvas::SetLayer(const GUILayer layer_) {
 	guiSystem->AddCanvasElement(this);
 
 }
-GUILayer GUICanvas::GetLayer() const {
+GUILayer GUIObject::GetLayer() const {
 	return layer;
 }
 
-void GUICanvas::Undirty() {
+void GUIObject::Undirty() {
 	dirty = false;
 }
 
-void GUICanvas::updateModelMatrix() {
+void GUIObject::updateModelMatrix() {
 	//transform.rotation = glm::quat(glm::vec3(-0.3f));
 
 	model = transform.ToMat4(layer);
 }
 
-void GUICanvas::updateBoundingBox() {
+void GUIObject::updateBoundingBox() {
 	boundingBox = transform.CalculateEnclosingBoundingBox();
 	MarkDirty();
 }
 
-BoundingBox GUICanvas::GetBoundingBox() const {
+BoundingBox GUIObject::GetBoundingBox() const {
 	return boundingBox;
 }

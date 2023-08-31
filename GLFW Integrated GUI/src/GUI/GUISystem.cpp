@@ -28,16 +28,16 @@ GLFWwindow* GUISystem::GetWindow() const {
 	return window;
 }
 
-void GUISystem::AddCanvasElement(GUICanvas* element) {
+void GUISystem::AddCanvasElement(GUIObject* element) {
 	element->guiSystem = this;
 	element->MarkDirty();
 
-	auto last = std::find_if(guiElements.rbegin(),guiElements.rend(),[&element](const GUICanvas* el)->bool{return el->GetLayer()<element->GetLayer();});
+	auto last = std::find_if(guiElements.rbegin(),guiElements.rend(),[&element](const GUIObject* el)->bool{return el->GetLayer()<element->GetLayer();});
 	guiElements.insert(last._Get_current(),element);
 	
 	//guiElements.Insert(element,[](const GUICanvas* l,const GUICanvas* r)->bool{return l->GetLayer()<r->GetLayer();});
 }
-void GUISystem::RemoveCanvasElement(const GUICanvas* element) {
+void GUISystem::RemoveCanvasElement(const GUIObject* element) {
 	auto at = std::find(guiElements.begin(),guiElements.end(),element);
 	if(at!=guiElements.end()){
 		guiElements.erase(at);
@@ -148,7 +148,7 @@ void GUISystem::Init(GLFWwindow* window_) {
 
 void GUISystem::checkActivateAllEventListeners() const {
 	if(layerFlags&GUI_LAYER_FLAG_CLICK_DETECT_UNDER_LAYER) {
-		std::for_each(guiElements.begin(),guiElements.end(),[](const GUICanvas* element) {
+		std::for_each(guiElements.begin(),guiElements.end(),[](const GUIObject* element) {
 			if(!element->guiSystem->IsLayerChecksEnabled(element->GetLayer())) {
 				return;
 			}
@@ -163,7 +163,7 @@ void GUISystem::checkActivateAllEventListeners() const {
 	}else {
 		GUILayer topLayer = LAYER_MIN;
 		for(auto rit = guiElements.rbegin();rit!=guiElements.rend();++rit){
-			const GUICanvas* element = *rit;
+			const GUIObject* element = *rit;
 			if(element->GetLayer()>=topLayer) {
 				for(const auto listener: element->listeners) {
 					if(listener->Check()) {

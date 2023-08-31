@@ -2,9 +2,9 @@
 
 #include <glm/glm.hpp>
 
-class GUICanvasViewData {
+class GUIObjectViewData {
 public:
-	GUICanvasViewData():colorTint(1.0f){}
+	GUIObjectViewData():colorTint(1.0f){}
 	glm::vec4 colorTint;
 
 };

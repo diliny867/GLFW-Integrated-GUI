@@ -30,7 +30,8 @@
     <ClCompile Include="include\GL\VAO.cpp" />
     <ClCompile Include="include\GL\VBO.cpp" />
     <ClCompile Include="src\GUI\EventListener.cpp" />
-    <ClCompile Include="src\GUI\GUICanvas.cpp" />
+    <ClCompile Include="src\GUI\GUIObject.cpp" />
+    <ClCompile Include="src\GUI\GUIObjects\GUIGenericInteractable.cpp" />
     <ClCompile Include="src\GUI\GUISystem.cpp" />
     <ClCompile Include="src\InputManager.cpp" />
     <ClCompile Include="src\Source.cpp" />
@@ -60,8 +61,10 @@
     <ClInclude Include="src\BinaryTree.h" />
     <ClInclude Include="src\GUI\BoundingBox.h" />
     <ClInclude Include="src\GUI\EventListener.h" />
-    <ClInclude Include="src\GUI\GUICanvas.h" />
-    <ClInclude Include="src\GUI\GUICanvasViewData.h" />
+    <ClInclude Include="src\GUI\GUIObject.h" />
+    <ClInclude Include="src\GUI\GUIObjects\GUIButton.h" />
+    <ClInclude Include="src\GUI\GUIObjects\GUIGenericInteractable.h" />
+    <ClInclude Include="src\GUI\GUIObjectViewData.h" />
     <ClInclude Include="src\GUI\GUICommon.h" />
     <ClInclude Include="src\GUI\GUISystem.h" />
     <ClInclude Include="src\GUI\GUITransform.h" />

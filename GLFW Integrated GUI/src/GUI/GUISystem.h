@@ -23,12 +23,14 @@
 #include <cmath>
 
 #include "GUICommon.h"
-#include "GUICanvas.h"
+#include "GUIObject.h"
 #include "EventListener.h"
 #include "BoundingBox.h"
 #include "../BinaryTree.h"
 #include "../uniqueue.h"
 //#include "../InputManager.h"
+
+#include "GUIObjects/GUIButton.h"
 
 //#define BB_CHECK_TRANSFORM_FOR_CLICK
 #define DRAW_BOUNDING_BOXES
@@ -44,7 +46,7 @@ public:
 		ACTIVE
 	};
 private:
-	friend GUICanvas;
+	friend GUIObject;
 
 	GlobalState state;
 	GLFWwindow* window;
@@ -69,11 +71,11 @@ private:
 
 	bool dirty = false;
 
-	std::vector<GUICanvas*> guiElements;
+	std::vector<GUIObject*> guiElements;
 
 	//BinaryTree<GUICanvas*> guiElements;
 
-	uniqueue<GUICanvas*> updateQueue;
+	uniqueue<GUIObject*> updateQueue;
 
 	std::unordered_set<GUILayer> activeCheckedLayers;
 	std::unordered_set<GUILayer> hiddenLayers;
@@ -100,8 +102,8 @@ public:
 	glm::ivec2 GetScreenSize() const;
 	GLFWwindow* GetWindow() const;
 
-	void AddCanvasElement(GUICanvas* element);
-	void RemoveCanvasElement(const GUICanvas* element);
+	void AddCanvasElement(GUIObject* element);
+	void RemoveCanvasElement(const GUIObject* element);
 
 	void EnableLayerChecks(const GUILayer layer);
 	void DisableLayerChecks(const GUILayer layer);

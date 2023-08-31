@@ -7,20 +7,16 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include "../../include/GL/Texture2D.h"
-#include "../../include/GL/Shader.h"
-
 #include "BoundingBox.h"
 #include "GUICommon.h"
 #include "GUITransform.h"
-#include "GUICanvasViewData.h"
+#include "GUIObjectViewData.h"
 
-#include <deque>
-
-class EventListener;
 class GUISystem;
+class EventListener;
+class Texture2D;
 
-class GUICanvas {
+class GUIObject {
 public:
 	struct SideSnap { //Needs refactoring
 		enum SnapState {
@@ -36,11 +32,11 @@ public:
 		};
 		SnapState state;
 		SnapType type;
-		GUICanvas* canvas;
+		GUIObject* canvas;
 		SideSnap():state(NO_SNAP),type(DRAG),canvas(nullptr) {}
 		SideSnap(const SnapState state_):state(state_),type(DRAG),canvas(nullptr) {}
 		SideSnap(const SnapState state_,const SnapType type_):state(state_),type(type_),canvas(nullptr){}
-		SideSnap(const SnapState state_,const SnapType type_,GUICanvas* parent_):state(state_),type(type_),canvas(parent_){}
+		SideSnap(const SnapState state_,const SnapType type_,GUIObject* parent_):state(state_),type(type_),canvas(parent_){}
 		friend bool operator==(const SideSnap& lhs,const SideSnap& rhs){ return lhs.state==rhs.state && lhs.type==rhs.type && lhs.canvas==rhs.canvas; }
 	};
 	enum Side {
@@ -51,6 +47,7 @@ public:
 		BOTTOM
 	};
 	
+	std::string label;
 protected:
 	bool dirty = false;
 	static Side indexToSide(const int index);
@@ -72,7 +69,7 @@ public:
 	GUITransform transform;
 
 	SideSnap sideSnaps[4];
-	std::unordered_set<GUICanvas*> snappedToThis;
+	std::unordered_set<GUIObject*> snappedToThis;
 
 	std::vector<EventListener*> listeners;
 
@@ -80,19 +77,21 @@ public:
 
 	Texture2D* texture = nullptr;
 
-	GUICanvasViewData viewData;
+	GUIObjectViewData viewData;
 
-	GUICanvas();
-	GUICanvas(GUISystem* guiSystem_);
-	//GUICanvas(const double x,const double y,const double width,const double height);
-	//GUICanvas(const double x,const double y,const double width,const double height, GUISystem* guiSystem_);
-	GUICanvas(const float x,const float y,const float width,const float height);
-	GUICanvas(const float x,const float y,const float width,const float height, GUISystem* guiSystem_);
+	GUIObject();
+	GUIObject(GUISystem* guiSystem_);
+	GUIObject(const float x,const float y,const float width,const float height);
+	GUIObject(const float x,const float y,const float width,const float height, GUISystem* guiSystem_);
+	GUIObject(const std::string& label_);
+	GUIObject(const std::string& label_,GUISystem* guiSystem_);
+	GUIObject(const std::string& label_,const float x,const float y,const float width,const float height);
+	GUIObject(const std::string& label_,const float x,const float y,const float width,const float height, GUISystem* guiSystem_);
 
 	void AddListener(EventListener* listener);
 	bool CheckClick(const float x, const float y) const;
 	void SetSnap(const Side side, const SideSnap::SnapType sideSnapType, const SideSnap::SnapState sideSnapState);
-	void SetSnap(const Side side, const SideSnap::SnapType sideSnapType, const SideSnap::SnapState sideSnapState, GUICanvas* sideSnap);
+	void SetSnap(const Side side, const SideSnap::SnapType sideSnapType, const SideSnap::SnapState sideSnapState, GUIObject* sideSnap);
 	void MarkDirty();
 	bool IsDirty() const;
 	void UpdateView();

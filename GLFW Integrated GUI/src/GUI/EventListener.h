@@ -10,6 +10,7 @@ protected:
 	std::function<bool(GUIObject*)> Check_;
 	std::function<void(GUIObject*)> OnActivate_;
 	std::function<void(GUIObject*)> OnNotActivate_;
+	bool dirty = false;
 public:
 	std::string label;
 	GUIObject* guiElement;
@@ -23,9 +24,35 @@ public:
 	EventListener(const std::string& label_,const std::function<bool(GUIObject*)>& check,const std::function<void(GUIObject*)>& onActivate);
 	EventListener(const std::string& label_,const std::function<bool(GUIObject*)>& check,const std::function<void(GUIObject*)>& onActivate,const std::function<void(GUIObject*)>& onNotActive);
 
+	/*
+	EventListener(GUIObject* element_,const std::function<bool(GUIObject*)>& check,const std::function<void(GUIObject*)>& onActivate);
+	EventListener(GUIObject* element_,const std::function<bool(GUIObject*)>& check,const std::function<void(GUIObject*)>& onActivate,const std::function<void(GUIObject*)>& onNotActive);
+	EventListener(const std::function<bool(GUIObject*)>& check,const std::function<void(GUIObject*)>& onActivate);
+	EventListener(const std::function<bool(GUIObject*)>& check,const std::function<void(GUIObject*)>& onActivate,const std::function<void(GUIObject*)>& onNotActive);
+
+	EventListener(const std::string& label_,GUIObject* element_,const std::function<bool(GUIObject*)>& check,const std::function<void(GUIObject*)>& onActivate);
+	EventListener(const std::string& label_,GUIObject* element_,const std::function<bool(GUIObject*)>& check,const std::function<void(GUIObject*)>& onActivate,const std::function<void(GUIObject*)>& onNotActive);
+	EventListener(const std::string& label_,const std::function<bool(GUIObject*)>& check,const std::function<void(GUIObject*)>& onActivate);
+	EventListener(const std::string& label_,const std::function<bool(GUIObject*)>& check,const std::function<void(GUIObject*)>& onActivate,const std::function<void(GUIObject*)>& onNotActive);
+
+	EventListener(GUIObject* element_,const EventType type_,const std::function<bool(GUIObject*)>& check,const std::function<void(GUIObject*)>& onActivate);
+	EventListener(GUIObject* element_,const EventType type_,const std::function<bool(GUIObject*)>& check,const std::function<void(GUIObject*)>& onActivate,const std::function<void(GUIObject*)>& onNotActive);
+	EventListener(const EventType type_,const std::function<bool(GUIObject*)>& check,const std::function<void(GUIObject*)>& onActivate);
+	EventListener(const EventType type_,const std::function<bool(GUIObject*)>& check,const std::function<void(GUIObject*)>& onActivate,const std::function<void(GUIObject*)>& onNotActive);
+
+	EventListener(const std::string& label_,GUIObject* element_,const EventType type_,const std::function<bool(GUIObject*)>& check,const std::function<void(GUIObject*)>& onActivate);
+	EventListener(const std::string& label_,GUIObject* element_,const EventType type_,const std::function<bool(GUIObject*)>& check,const std::function<void(GUIObject*)>& onActivate,const std::function<void(GUIObject*)>& onNotActive);
+	EventListener(const std::string& label_,const EventType type_,const std::function<bool(GUIObject*)>& check,const std::function<void(GUIObject*)>& onActivate);
+	EventListener(const std::string& label_,const EventType type_,const std::function<bool(GUIObject*)>& check,const std::function<void(GUIObject*)>& onActivate,const std::function<void(GUIObject*)>& onNotActive);
+	 */
+
 	void SetCheck(const std::function<bool(GUIObject*)>& check);
 	void SetOnActivate(const std::function<void(GUIObject*)>& onActivate);
 	void SetOnNotActivate(const std::function<void(GUIObject*)>& onNotActivate);
+
+	void MarkDirty();
+	bool IsDirty();
+	void UnDirty();
 	
 	bool Check(); //If event listener check worked
 	void OnActivate(); //To change internal state of object, event listener is bound to
@@ -175,7 +202,7 @@ public:
 #define EL_Check_NotHover_Func												\
 [](const GUIObject* obj)->bool {											\
 	const InputManager::Mouse& mouse = InputManager::mouse;					\
-	return !obj->CheckClick(mouse.posX,mouse.posY);				\
+	return !obj->CheckClick(mouse.posX,mouse.posY);							\
 }
 
 #define EL_Check_StartHereHold_Func											\

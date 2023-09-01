@@ -25,6 +25,7 @@
 #include "GUICommon.h"
 #include "GUIObject.h"
 #include "EventListener.h"
+#include "GUIEventSystem.h"
 #include "BoundingBox.h"
 #include "../BinaryTree.h"
 #include "../uniqueue.h"

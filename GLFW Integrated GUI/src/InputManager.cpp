@@ -8,8 +8,8 @@ void InputManager::GLFW_KeyCallback(GLFWwindow* window, int key, int scancode, i
 	if(action == GLFW_RELEASE) {
 		keyMap.erase(key);
 	}
-	if(keyCallback!=nullptr){
-		keyCallback();
+	for(const auto& callback: keyCallbacks){
+		callback();
 	}
 }
 void InputManager::GLFW_MouseCursorCallback(GLFWwindow* window, double xpos, double ypos) {
@@ -22,15 +22,15 @@ void InputManager::GLFW_MouseCursorCallback(GLFWwindow* window, double xpos, dou
 	mouse.deltaY = ypos-mouse.posY;
 	mouse.posX = xpos;
 	mouse.posY = ypos;
-	if(mouseCursorCallback!=nullptr){
-		mouseCursorCallback();
+	for(const auto& callback: mouseCursorCallbacks){
+		callback();
 	}
 }
 void InputManager::GLFW_MouseScrollCallback(GLFWwindow* window,double xoffset,double yoffset) {
 	mouse.scrollOffsetX = xoffset;
 	mouse.scrollOffsetY = yoffset;
-	if(mouseScrollCallback!=nullptr){
-		mouseScrollCallback();
+	for(const auto& callback: mouseScrollCallbacks){
+		callback();
 	}
 }
 void InputManager::GLFW_MouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
@@ -50,8 +50,8 @@ void InputManager::GLFW_MouseButtonCallback(GLFWwindow* window, int button, int 
 			mouse.rightPress = false;
 		}
 	}
-	if(mouseButtonCallback!=nullptr){
-		mouseButtonCallback();
+	for(const auto& callback: mouseButtonCallbacks) {
+		callback();
 	}
 }
 
@@ -63,17 +63,17 @@ void InputManager::Init(GLFWwindow* window_) {
 	glfwSetMouseButtonCallback(window,GLFW_MouseButtonCallback);
 }
 
-void InputManager::SetKeyCallback(const std::function<void()>& callback) {
-	keyCallback = callback;
+void InputManager::AddKeyCallback(const std::function<void()>& callback) {
+	keyCallbacks.push_back(callback);
 }
-void InputManager::SetMouseCursorCallback(const std::function<void()>& callback) {
-	mouseCursorCallback = callback;
+void InputManager::AddMouseCursorCallback(const std::function<void()>& callback) {
+	mouseCursorCallbacks.push_back(callback);
 }
-void InputManager::SetMouseScrollCallback(const std::function<void()>& callback) {
-	mouseScrollCallback = callback;
+void InputManager::AddMouseScrollCallback(const std::function<void()>& callback) {
+	mouseScrollCallbacks.push_back(callback);
 }
-void InputManager::SetMouseButtonCallback(const std::function<void()>& callback) {
-	mouseButtonCallback = callback;
+void InputManager::AddMouseButtonCallback(const std::function<void()>& callback) {
+	mouseButtonCallbacks.push_back(callback);
 }
 
 void InputManager::PollEvents() {

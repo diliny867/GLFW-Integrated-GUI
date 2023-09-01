@@ -70,12 +70,13 @@ int main() {
 
     Time::Init();
     InputManager::Init(window);
-    InputManager::SetKeyCallback(key_callback);
-    InputManager::SetMouseButtonCallback(mouse_button_callback);
-    InputManager::SetMouseCursorCallback(mouse_cursor_callback);
-    InputManager::SetMouseScrollCallback(mouse_scroll_callback);
+    InputManager::AddKeyCallback(key_callback);
+    InputManager::AddMouseButtonCallback(mouse_button_callback);
+    InputManager::AddMouseCursorCallback(mouse_cursor_callback);
+    InputManager::AddMouseScrollCallback(mouse_scroll_callback);
     InputManager::mouse.posX = SCR_WIDTH/2;
     InputManager::mouse.posY = SCR_HEIGHT/2;
+    GUIEventSystem::Init();
 
     glm::mat4 projection = glm::ortho(0.0f,SCR_WIDTH,SCR_HEIGHT,0.0f,DEPTH_MIN,DEPTH_MAX);
     glm::mat4 model = glm::mat4(1.0f);
@@ -97,7 +98,7 @@ int main() {
     //mainGUI.allLayersEnabled = true;
 
     GUIButton* exitButton = new GUIButton(0,0,50,50);
-    exitButton->SetOnLeftMouseDown([&window](GUIObject* obj)->void {
+    exitButton->SetOnLeftMouseUp([&window](GUIObject* obj)->void {
 			std::cout<<"Exiting...\n";
 			glfwSetWindowShouldClose(window,true);
     });
@@ -134,7 +135,6 @@ int main() {
     //    obj->MarkDirty();
     //    std::cout<<"CLICK\n";
     //});
-
     gb->AddListener(new EventListener(
         EL_Check_MouseDownLMB_Func,
         [&](GUIObject* obj)->void {

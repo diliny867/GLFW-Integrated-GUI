@@ -84,6 +84,9 @@
     <ClCompile Include="src\GUI\GUIObjects\GUIGenericInteractable.cpp">
       <Filter>Source Files\GUI</Filter>
     </ClCompile>
+    <ClCompile Include="src\GUI\GUIEventSystem.cpp">
+      <Filter>Source Files\GUI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="resources\shaders\shader_fs.glsl">
@@ -180,6 +183,9 @@
     </ClInclude>
     <ClInclude Include="src\GUI\GUIObjects\GUIGenericInteractable.h">
       <Filter>Header Files\GUI\GUIObjects</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GUI\GUIEventSystem.h">
+      <Filter>Header Files\GUI</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

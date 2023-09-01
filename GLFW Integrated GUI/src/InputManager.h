@@ -1,9 +1,11 @@
 #pragma once
 
+#include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
 
 #include <iostream>
+#include <vector>
 #include <unordered_set>
 #include <functional>
 
@@ -39,10 +41,10 @@ private:
     //static cursorposfun MouseCursorCallback;
     //static scrollfun MouseScrollCallback;
     //static mousebuttonfun MouseButtonCallback;
-    inline static std::function<void()> keyCallback = nullptr;
-    inline static std::function<void()> mouseCursorCallback = nullptr;
-    inline static std::function<void()> mouseScrollCallback = nullptr;
-    inline static std::function<void()> mouseButtonCallback = nullptr;
+    inline static std::vector<std::function<void()>> keyCallbacks;
+    inline static std::vector<std::function<void()>> mouseCursorCallbacks;
+    inline static std::vector<std::function<void()>> mouseScrollCallbacks;
+    inline static std::vector<std::function<void()>> mouseButtonCallbacks;
 public:
     class Mouse {
     private:
@@ -68,9 +70,9 @@ public:
     //static void SetMouseCursorCallback(cursorposfun callback);
     //static void SetMouseScrollCallback(scrollfun callback);
     //static void SetMouseButtonCallback(mousebuttonfun callback);
-    static void SetKeyCallback(const std::function<void()>& callback);
-    static void SetMouseCursorCallback(const std::function<void()>& callback);
-    static void SetMouseScrollCallback(const std::function<void()>& callback);
-    static void SetMouseButtonCallback(const std::function<void()>& callback);
+    static void AddKeyCallback(const std::function<void()>& callback);
+    static void AddMouseCursorCallback(const std::function<void()>& callback);
+    static void AddMouseScrollCallback(const std::function<void()>& callback);
+    static void AddMouseButtonCallback(const std::function<void()>& callback);
     static void PollEvents();
 };

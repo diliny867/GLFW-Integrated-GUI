@@ -27,7 +27,7 @@ GUIObject::GUIObject(const std::string& label_,const float x,const float y,const
 	updateModelMatrix();
 }
 
-void GUIObject::AddListener(EventListener*listener) {
+void GUIObject::AddListener(EventListener* listener) {
 	listener->guiElement = this;
 	listeners.push_back(listener);
 }

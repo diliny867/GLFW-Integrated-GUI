@@ -32,7 +32,7 @@ void GUISystem::AddCanvasElement(GUIObject* element) {
 	element->guiSystem = this;
 	element->MarkDirty();
 
-	auto last = std::find_if(guiElements.rbegin(),guiElements.rend(),[&element](const GUIObject* el)->bool{return el->GetLayer()<element->GetLayer();});
+	auto last = std::find_if(guiElements.rbegin(),guiElements.rend(),[&element](const GUIObject* el)->bool{return el->GetLayer()<element->GetLayer();}); //sometimes crashes?
 	guiElements.insert(last._Get_current(),element);
 	
 	//guiElements.Insert(element,[](const GUICanvas* l,const GUICanvas* r)->bool{return l->GetLayer()<r->GetLayer();});
@@ -153,25 +153,29 @@ void GUISystem::checkActivateAllEventListeners() const {
 				return;
 			}
 			for(const auto listener: element->listeners) {
+				if(!listener->IsDirty()){ continue; }
 				if(listener->Check()) {
 					listener->OnActivate();
 				} else {
 					listener->OnNotActive();
 				}
+				listener->UnDirty();
 			}
-			});
+		});
 	}else {
 		GUILayer topLayer = LAYER_MIN;
 		for(auto rit = guiElements.rbegin();rit!=guiElements.rend();++rit){
 			const GUIObject* element = *rit;
 			if(element->GetLayer()>=topLayer) {
 				for(const auto listener: element->listeners) {
+					if(!listener->IsDirty()){ continue; }
 					if(listener->Check()) {
 						listener->OnActivate();
 						topLayer = element->GetLayer();
 					} else {
 						listener->OnNotActive();
 					}
+					listener->UnDirty();
 				}
 			}
 		}
@@ -260,6 +264,8 @@ void GUISystem::NewFrame() {
 	if(state == DISABLED) {
 		return;
 	}
+
+	GUIEventSystem::TryNotifySubscribers();
 
 	checkActivateAllEventListeners();
 	updateViewAllGuiElements();

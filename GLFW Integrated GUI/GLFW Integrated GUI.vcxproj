@@ -30,6 +30,7 @@
     <ClCompile Include="include\GL\VAO.cpp" />
     <ClCompile Include="include\GL\VBO.cpp" />
     <ClCompile Include="src\GUI\EventListener.cpp" />
+    <ClCompile Include="src\GUI\GUIEventSystem.cpp" />
     <ClCompile Include="src\GUI\GUIObject.cpp" />
     <ClCompile Include="src\GUI\GUIObjects\GUIGenericInteractable.cpp" />
     <ClCompile Include="src\GUI\GUISystem.cpp" />
@@ -61,6 +62,7 @@
     <ClInclude Include="src\BinaryTree.h" />
     <ClInclude Include="src\GUI\BoundingBox.h" />
     <ClInclude Include="src\GUI\EventListener.h" />
+    <ClInclude Include="src\GUI\GUIEventSystem.h" />
     <ClInclude Include="src\GUI\GUIObject.h" />
     <ClInclude Include="src\GUI\GUIObjects\GUIButton.h" />
     <ClInclude Include="src\GUI\GUIObjects\GUIGenericInteractable.h" />
